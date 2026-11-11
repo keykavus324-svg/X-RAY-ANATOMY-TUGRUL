@@ -7,7 +7,9 @@ Bu depodaki `models/anatomy.bin` ve `models/anatomy.json` dosyaları **türev** 
   Z-Anatomy, BodyParts3D veri kümesi üzerine kuruludur.
   Kaynak GLB dosyaları: `anatomyverse` deposundaki `models/zanatomy-*.glb`.
 
-- **Yüz kasları, göz küreleri ve boyun omurları**
+- **Yüz kasları, göz küreleri, boyun omurları ve tam iskelet**
+  (göğüs/bel omurları, sakrum, 24 kaburga, sternum, köprücük, kürek, kol ve el,
+  leğen, uyluk, diz kapağı, kaval, baldır ve ayak kemikleri — 38 parça)
   BodyParts3D veri tabanından alınmıştır — **CC Attribution-Share Alike 2.1 Japan**.
 
 Zorunlu atıf (olduğu gibi korunmalıdır):
@@ -18,7 +20,8 @@ Zorunlu atıf (olduğu gibi korunmalıdır):
 
 1. Parçalar ortak bir çerçeveye taşındı (orijin = göz bebekleri ortası, 1 birim = göz bebekleri arası, +Y yukarı, +Z öne, aynalı özçekim yönü).
 2. BodyParts3D STL'leri, Z-Anatomy çerçevesine en küçük kareler benzerlik dönüşümüyle hizalandı (`tools/fit.py` → `tools/bpd_to_za.json`).
-3. Yüzeyler, toplam ~176 bin üçgene inecek şekilde sadeleştirildi (fast-simplification), kullanılmayan köşeler atıldı, normaller birim vektör olarak yeniden hesaplandı.
+3. Yüzeyler, toplam ~252 bin üçgene inecek şekilde sadeleştirildi (fast-simplification), kullanılmayan köşeler atıldı, normaller birim vektör olarak yeniden hesaplandı.
+3b. Tam iskelet 2. aşamada eklendi: her kemik kendi hedef üçgen sayısına indirgendi, sol/sağ çiftler tek mesh hâlinde birleştirildi (`tools/build_skeleton.py`).
 4. Konumlar `int16`, normaller `int8` olarak kuantize edildi; indeksler `uint16`; tüm parçalar tek bir ikili dosyada birleştirildi.
 
 Bu türev de **CC BY-SA** koşulları altındadır: yeniden yayınlarken yukarıdaki atfı, bu lisansı ve yaptığınız değişikliklerin belirtilmesini korumak zorundasınız. Uygulama kodu (`index.html`, `src/`, `assets/css`) ayrı olarak MIT lisanslıdır (bkz. `LICENSE`).
@@ -36,8 +39,10 @@ Kaynak ağlar depoya dahil edilmemiştir (boyut + lisans). Hattı yeniden çalı
 #    hedef: tools/sources/
 #    json'a çevir:  node tools/decode_glb.mjs
 
-# 3) derle
+# 3) derle (iki aşama)
 XRM_WORK=$PWD/tools/sources python tools/build_geometry.py models
+XRM_WORK=$PWD/tools/sources python tools/build_skeleton.py models
+node tools/check_site.mjs
 python tools/make_assets.py models assets
 ```
 

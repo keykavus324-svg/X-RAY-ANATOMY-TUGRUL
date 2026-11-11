@@ -7,7 +7,9 @@ const $ = (id) => document.getElementById(id);
 export function initControls({ state, onChange, actions, t }) {
   const layerBoxes = {
     skull: $('L_skull'), brain: $('L_brain'), muscles: $('L_muscles'), eyes: $('L_eyes'), neck: $('L_neck'),
+    skeleton: $('L_skeleton'),
   };
+  const viewButtons = Array.from(document.querySelectorAll('[data-view]'));
   const labelsBox = $('labels');
   const brightInput = $('bright');
   const realMeInput = $('realMe');
@@ -41,13 +43,21 @@ export function initControls({ state, onChange, actions, t }) {
     if (labelsBox) labelsBox.checked = !!state.labels;
     presetButtons.forEach((b) => {
       const preset = b.dataset.preset;
+      const L = state.layers;
+      const only = (...keys) => {
+        const want = new Set(keys);
+        return ['skull', 'brain', 'muscles', 'eyes', 'neck', 'skeleton']
+          .filter((k) => L[k]).every((k) => want.has(k)) && keys.every((k) => L[k]);
+      };
       const match =
-        preset === 'skull' ? state.layers.skull && !state.layers.brain && !state.layers.muscles
-        : preset === 'brain' ? state.layers.brain && !state.layers.skull && !state.layers.muscles
-        : preset === 'muscles' ? state.layers.muscles && !state.layers.skull && !state.layers.brain
-        : state.layers.skull && state.layers.brain && state.layers.muscles && state.layers.eyes;
+        preset === 'skull' ? only('skull', 'eyes')
+        : preset === 'brain' ? only('brain')
+        : preset === 'muscles' ? only('muscles')
+        : preset === 'skeleton' ? only('skull', 'neck', 'skeleton')
+        : only('skull', 'brain', 'muscles', 'eyes', 'skeleton');
       b.classList.toggle('on', !!match);
     });
+    viewButtons.forEach((b) => b.classList.toggle('on', b.dataset.view === state.view));
   };
 
   for (const [layer, box] of Object.entries(layerBoxes)) {
@@ -64,11 +74,13 @@ export function initControls({ state, onChange, actions, t }) {
   presetButtons.forEach((b) => {
     b.addEventListener('click', () => {
       const p = b.dataset.preset;
+      const base = { skull: false, brain: false, muscles: false, eyes: false, neck: false, skeleton: false };
       state.layers = p === 'all'
-        ? { skull: true, brain: true, muscles: true, eyes: true, neck: false }
-        : p === 'skull' ? { skull: true, brain: false, muscles: false, eyes: true, neck: false }
-        : p === 'brain' ? { skull: false, brain: true, muscles: false, eyes: false, neck: false }
-        : { skull: false, brain: false, muscles: true, eyes: false, neck: false };
+        ? { ...base, skull: true, brain: true, muscles: true, eyes: true, skeleton: true }
+        : p === 'skull' ? { ...base, skull: true, eyes: true }
+        : p === 'brain' ? { ...base, brain: true }
+        : p === 'muscles' ? { ...base, muscles: true }
+        : { ...base, skull: true, neck: true, skeleton: true };   // skeleton
       syncLayerBoxes();
       onChange({ type: 'layers' });
     });
@@ -113,6 +125,15 @@ export function initControls({ state, onChange, actions, t }) {
   const syncCutRow = () => {
     if (cutRow) cutRow.style.display = state.reveal === 'lens' || state.reveal === 'whole' ? 'none' : '';
   };
+
+  /* ------------------------------------------------------------- body view */
+  viewButtons.forEach((b) => {
+    b.addEventListener('click', () => {
+      state.view = b.dataset.view;
+      viewButtons.forEach((x) => x.classList.toggle('on', x === b));
+      onChange({ type: 'view' });
+    });
+  });
 
   /* ------------------------------------------------------------------- fit */
   autoFitBox?.addEventListener('change', () => {

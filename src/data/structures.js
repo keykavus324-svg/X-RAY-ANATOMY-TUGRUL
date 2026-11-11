@@ -1,7 +1,7 @@
 /**
  * Structure catalogue — names, Latin terms and short descriptions.
  * Anchor coordinates live in models/anatomy.json; this file carries the words.
- * Layers: skull | brain | muscles | eyes | neck
+ * Layers: skull | brain | muscles | eyes | neck | skeleton
  */
 export const LAYERS = {
   skull:   { tr: 'Kemik',  en: 'Bone',   color: '#cfe6ff' },
@@ -9,7 +9,81 @@ export const LAYERS = {
   muscles: { tr: 'Kas',    en: 'Muscle', color: '#ff6a5a' },
   eyes:    { tr: 'Göz',    en: 'Eye',    color: '#ffe9a8' },
   neck:    { tr: 'Boyun',  en: 'Neck',   color: '#a8c8ea' },
+  skeleton: { tr: 'İskelet', en: 'Skeleton', color: '#b8cde8' },
 };
+
+/* ------------------------------------------------------------------ skeleton
+ * Body bones come from BodyParts3D; the labels sit on the surface point that faces
+ * the camera, so a paired structure gets two labels.
+ */
+const BODY = [
+  { id: 'thoracic', layer: 'skeleton', latin: 'Vertebrae thoracicae',
+    tr: { name: 'Göğüs omurgası (T1–T12)', desc: 'On iki göğüs omuru. Her biri bir çift kaburga ile eklem yapar; sırtın orta hattını kurar ve göğüs kafesinin arka duvarını oluşturur. Kalp ve akciğerler bu kafesin içinde asılı durur.' },
+    en: { name: 'Thoracic spine (T1–T12)', desc: 'Twelve vertebrae, each paired with a rib. Together they build the back wall of the rib cage that the heart and lungs hang inside.' } },
+
+  { id: 'lumbar', layer: 'skeleton', latin: 'Vertebrae lumbales',
+    tr: { name: 'Bel omurgası (L1–L5)', desc: 'Beş bel omuru; gövdenin bütün ağırlığını taşıyan en iri omur blokları. Bu yüzden gövdeleri büyük, eklem yüzeyleri kalın ve diskleri en kalındır.' },
+    en: { name: 'Lumbar spine (L1–L5)', desc: 'Five big vertebral bodies that carry the whole weight of the torso — the reason their discs are the thickest in the spine.' } },
+
+  { id: 'sacrum', layer: 'skeleton', latin: 'Os sacrum',
+    tr: { name: 'Sakrum (sağrı kemiği)', desc: 'Beş kaynaşmış omurun oluşturduğu üçgen kemik. Omurgayı leğen kemiğine bağlar; ağırlığı bacaklara iki yandan aktaran köprüdür.' },
+    en: { name: 'Sacrum', desc: 'Five fused vertebrae in a triangle. It joins the spine to the pelvis and splits the body weight towards both legs.' } },
+
+  { id: 'ribs', layer: 'skeleton', latin: 'Costae',
+    tr: { name: 'Kaburgalar', desc: 'On iki çift yay biçimli kemik. Arkada omurgaya, önde kıkırdakla sternuma bağlanır; göğüs kafesini kurup nefes alırken genişleyip daralan bir pompa oluştururlar. Son iki çift serbest kalır (yüzen kaburgalar).' },
+    en: { name: 'Ribs', desc: 'Twelve pairs of curved bones. They hinge on the spine behind and reach the sternum in front, forming the cage that widens and narrows as a breathing pump. The last two pairs float free.' } },
+
+  { id: 'sternum', layer: 'skeleton', latin: 'Sternum',
+    tr: { name: 'Göğüs kemiği (sternum)', desc: 'Göğsün ortasındaki yassı kemik; kaburgaların ön kıkırdaklarını toplar. Kemiğin içindeki kırmızı ilik, omuz ve sırt kemikleriyle birlikte kan hücresi üretir.' },
+    en: { name: 'Sternum', desc: 'The flat bone down the middle of the chest where the front ends of the ribs gather. Its red marrow makes blood cells, together with the shoulder and spine bones.' } },
+
+  { id: 'clavicle', layer: 'skeleton', latin: 'Clavicula',
+    tr: { name: 'Köprücük kemiği', desc: 'Göğüs kemiğinden omza uzanan ince S biçimli kemik. Kolu gövdeye bağlayan tek kemik köprüsüdür; bütün omuz hareketleri onun etrafında döner.' },
+    en: { name: 'Clavicle', desc: 'A thin S-shaped strut from the sternum to the shoulder tip — the only bony bridge between arm and trunk, which is why every shoulder movement hinges on it.' } },
+
+  { id: 'scapula', layer: 'skeleton', latin: 'Scapula',
+    tr: { name: 'Kürek kemiği', desc: 'Sırtta kasların arasında yüzen üçgen kemik. Omuz eklemi çukuruna ev sahipliği yapar ve kolun ağırlığını gövdeye aktarır.' },
+    en: { name: 'Scapula', desc: 'A triangular bone that floats in the back muscles. It holds the socket of the shoulder joint and hands the arm’s weight to the trunk.' } },
+
+  { id: 'humerus', layer: 'skeleton', latin: 'Humerus',
+    tr: { name: 'Pazı kemiği (humerus)', desc: 'Omuzdan dirseğe uzanan tek kemik. Üst ucundaki topuz omuz eklemini, alt ucundaki makara dirsek eklemini yapar; iki kemiği tek kemikle birleştiren tipik bir kaldıraçtır.' },
+    en: { name: 'Humerus', desc: 'The single bone from shoulder to elbow: a ball at the top, a pulley at the bottom, and a textbook lever in between.' } },
+
+  { id: 'radius', layer: 'skeleton', latin: 'Radius',
+    tr: { name: 'Ön kol kemiği (radius)', desc: 'Baş parmak tarafındaki ön kol kemiği. Dirsekten el bileğine kadar uzanır ve ön kolu çeviren hareketi (pronasyon) ulna etrafında döner.' },
+    en: { name: 'Radius', desc: 'The forearm bone on the thumb side. It pivots around the ulna, which is what lets you turn your palm up and down.' } },
+
+  { id: 'ulna', layer: 'skeleton', latin: 'Ulna',
+    tr: { name: 'Dirsek kemiği (ulna)', desc: 'Serçe parmak tarafındaki ön kol kemiği. Dirsek ekleminin menteşesini oluşturur; üst ucundaki çıkıntı dirseğin arkasında elimizle hissettiğimiz kemiktir.' },
+    en: { name: 'Ulna', desc: 'The forearm bone on the little-finger side and the hinge of the elbow; its tip is the point you feel at the back of your elbow.' } },
+
+  { id: 'hip', layer: 'skeleton', latin: 'Os coxae',
+    tr: { name: 'Leğen kemiği', desc: 'İlyum, iskiyum ve pubis adlı üç parçanın kaynaşmasıyla oluşan çanak kemik. Kalça ekleminin yuvasını yapar ve omurga ile bacaklar arasında güç aktarır.' },
+    en: { name: 'Hip bone', desc: 'A fused cup of ilium, ischium and pubis. It forms the socket of the hip joint and transmits force between spine and legs.' } },
+
+  { id: 'femur', layer: 'skeleton', latin: 'Femur',
+    tr: { name: 'Uyluk kemiği (femur)', desc: 'Vücudun en uzun ve en güçlü kemiği. Kalçadan dize uzanır; yürürken bütün gövde ağırlığını taşır ve boyunun büktüğü açı yüzünden basınç kuvvetleri içe doğru yönelir.' },
+    en: { name: 'Femur', desc: 'The longest and strongest bone in the body. It carries your whole weight on every step, and its angled neck is what turns that load into a lever.' } },
+
+  { id: 'patella', layer: 'skeleton', latin: 'Patella',
+    tr: { name: 'Diz kapağı', desc: 'Diz ekleminin önünde oturan susamsı kemik. Uyluk kasının tendonunun içinde yer alır ve bir makara gibi kuvvetin yönünü çevirerek bacağın açılmasını kolaylaştırır.' },
+    en: { name: 'Patella', desc: 'A sesamoid bone inside the quadriceps tendon. It works like a pulley, redirecting the muscle’s pull so the knee straightens more easily.' } },
+
+  { id: 'tibia', layer: 'skeleton', latin: 'Tibia',
+    tr: { name: 'Kaval kemiği (tibia)', desc: 'Baldırın iç tarafındaki kalın kemik; toplam vücut ağırlığının %80’ini ayak bileğine aktarır. Ön yüzü deri altında olduğu için elimizle dokunabildiğimiz tek uzun kemiktir.' },
+    en: { name: 'Tibia', desc: 'The thick shin bone that passes roughly 80% of the body weight to the ankle. Its front edge lies right under the skin — the only long bone you can simply touch.' } },
+
+  { id: 'fibula', layer: 'skeleton', latin: 'Fibula',
+    tr: { name: 'Baldır kemiği (fibula)', desc: 'Baldırın dış tarafındaki ince kemik. Ağırlık taşımaz; ayak bileğini yanlardan kilitleyen bir destek çubuğu ve kaslar için geniş bir tutunma yüzeyidir.' },
+    en: { name: 'Fibula', desc: 'The slender outer bone of the lower leg. It carries almost no weight: it is the lateral strut that locks the ankle and a wide anchor for muscles.' } },
+
+  { id: 'hand', layer: 'skeleton', latin: 'Ossa manus',
+    tr: { name: 'El iskeleti', desc: 'Bilek kemikleri (8), tarak kemikleri (5) ve parmak kemikleri (14) — tek elde 27 kemik. Bütün vücudun en ince hareketlerini yapan bu küçük eklem zinciri yapar.' },
+    en: { name: 'Hand skeleton', desc: 'Carpals (8), metacarpals (5) and phalanges (14) — 27 bones per hand, forming the joint chain that performs the finest movements of the body.' } },
+
+  { id: 'foot', layer: 'skeleton', latin: 'Ossa pedis',
+    tr: { name: 'Ayak iskeleti', desc: 'Topuktan parmaklara 26 kemik. Ayakta dururken yay biçiminde gerilir, adım atarken yay geri verir; kemerlerin bu yaylanması şoku emer.' },
+    en: { name: 'Foot skeleton', desc: 'Twenty-six bones from heel to toes. The arches spring and rebound on every step, absorbing the impact of walking.' } },];
 
 export const STRUCTURES = [
   { id: 'frontal', layer: 'skull', latin: 'Os frontale',
@@ -149,6 +223,8 @@ export const STRUCTURES = [
   { id: 'cervical', layer: 'neck', latin: 'Vertebrae cervicales',
     tr: { name: 'Boyun omurları (C3–C7)', desc: 'Boynun alt bölümündeki beş omur. Omurilik kanalını korur, başı dengede tutar ve boyna geniş bir hareket açısı verir.' },
     en: { name: 'Cervical vertebrae (C3–C7)', desc: 'The five lower neck vertebrae. They guard the spinal cord, balance the head and give the neck its wide range of motion.' } },
+
+  ...BODY,
 ];
 
 export const BY_ID = Object.fromEntries(STRUCTURES.map((s) => [s.id, s]));

@@ -9,7 +9,7 @@ meta = json.load(open(f'{MODELS}/anatomy.json'))
 buf = open(f'{MODELS}/anatomy.bin', 'rb').read()
 
 COL = {'skull': (146, 206, 255), 'brain': (255, 120, 172), 'muscles': (255, 96, 84),
-       'eyes': (255, 232, 156), 'neck': (140, 190, 236)}
+       'eyes': (255, 232, 156), 'neck': (140, 190, 236), 'skeleton': (150, 186, 228)}
 
 def dec(p):
     v = np.frombuffer(buf, dtype='<i2', count=p['vCount']*3, offset=p['vOff']).reshape(-1, 3).astype(np.float32)
@@ -46,7 +46,7 @@ def render(W, H, zoom, ctr, ang_deg, layers, per_tri=30, glow=True):
         col = np.array(COL[ly], np.float32)/255
         shade = (0.34 + 0.66*lam) ** 1.4
         store.append((ly, pix, z, np.clip(col[None]*shade[:, None]*1.25, 0, 1)))
-    for ly in ['neck', 'brain', 'muscles', 'eyes', 'skull']:
+    for ly in ['skeleton', 'neck', 'brain', 'muscles', 'eyes', 'skull']:
         for l2, pix, z, rgb in store:
             if l2 != ly: continue
             m = z >= zb[pix] - 1e-4
@@ -68,8 +68,12 @@ def vignette(img, strength=0.85):
 W, H = 1200, 630
 skull = np.concatenate([p['vv'] for p in []]) if False else None
 head = np.concatenate([v for p, v, f in parts if p['layer'] == 'skull'])
+bones = np.concatenate([v for p, v, f in parts if p['layer'] in ('skull', 'skeleton')])
 c = (head.min(0) + head.max(0))/2
-img = render(W, H, 7.5, [c[0] - 2.25, c[1] - 0.03, c[2]], 22, {'skull', 'brain', 'eyes'}, per_tri=70)
+# the card shows the whole figure standing on the right third of the frame
+bc = (bones.min(0) + bones.max(0))/2
+full_h = bones.max(0)[1] - bones.min(0)[1]
+img = render(W, H, full_h * 1.34, [bc[0] - 7.6, bc[1] + 0.2, bc[2]], 16, {'skull', 'skeleton'}, per_tri=16)
 img = vignette(img, 0.95)
 base = np.zeros((H, W, 3), np.float32)
 yy, xx = np.mgrid[0:H, 0:W]
@@ -93,7 +97,7 @@ d.text((64, 74), 'X-RAY MIRROR', font=font(F, 30), fill=(127, 209, 255, 255))
 d.line([(64, 124), (196, 124)], fill=(127, 209, 255, 150), width=2)
 for i, line in enumerate(['Kendi röntgeninize', 'aynadan bakın.']):
     d.text((64, 176 + i*62), line, font=font(F, 54), fill=(240, 247, 255, 255))
-d.text((64, 344), 'Kafatası · beyin · yüz kasları · gözler', font=font(FR, 23), fill=(158, 182, 210, 255))
+d.text((64, 344), 'Kafatası · beyin · kaslar · baştan ayağa iskelet', font=font(FR, 23), fill=(158, 182, 210, 255))
 d.text((64, 380), 'Gerçek 3B anatomi, kameranızda canlı.', font=font(FR, 23), fill=(158, 182, 210, 255))
 d.rounded_rectangle([64, 448, 430, 496], radius=11, outline=(127, 209, 255, 120), width=1)
 d.text((84, 460), 'github.com/keykavus324-svg', font=font(F, 20), fill=(190, 226, 250, 255))

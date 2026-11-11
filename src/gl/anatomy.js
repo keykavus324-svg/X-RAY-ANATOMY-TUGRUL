@@ -7,9 +7,14 @@ export const LAYER_COLORS = {
   muscles: '#ff6a5a',
   eyes: '#ffe9a8',
   neck: '#a8c8ea',
+  skeleton: '#b8cde8',
 };
 
-export const LAYER_ORDER = ['skull', 'brain', 'muscles', 'eyes', 'neck'];
+export const LAYER_ORDER = ['skull', 'brain', 'muscles', 'eyes', 'neck', 'skeleton'];
+
+/** The head parts follow the tracked head; the skeleton below the neck stays upright. */
+const HEAD_LAYERS = new Set(['skull', 'brain', 'muscles', 'eyes', 'neck']);
+export { HEAD_LAYERS };
 
 /** Streamed fetch with a byte-progress callback (used for the loading state). */
 async function fetchWithProgress(url, onProgress) {
@@ -69,6 +74,14 @@ export class Anatomy {
     this.globals = createGlobals();
     this.group = new THREE.Group();
     this.group.name = 'anatomy';
+    // Two pivots inside one model: `headNode` turns with the tracked head (and carries
+    // the neck), `bodyNode` holds the rest of the skeleton and only sways a little, so
+    // the body can never tip over with a noisy pose estimate.
+    this.headNode = new THREE.Group();
+    this.headNode.name = 'head';
+    this.bodyNode = new THREE.Group();
+    this.bodyNode.name = 'body';
+    this.group.add(this.bodyNode, this.headNode);
     this.parts = new Map();          // partId -> mesh
     this.byLayer = new Map(LAYER_ORDER.map((l) => [l, []]));
     this.structures = meta.structures;
@@ -76,7 +89,9 @@ export class Anatomy {
     this.looks = {};                 // layer -> { normal: {xray,solid,wire}, hi: {...}, ghost }
     this.look = 'xray';
     this.highlightId = null;
-    this.layerState = { skull: true, brain: true, muscles: true, eyes: true, neck: true };
+    this.layerState = {
+      skull: true, brain: true, muscles: true, eyes: true, neck: true, skeleton: true,
+    };
     this.triangles = meta.counts?.tris ?? 0;
   }
 
@@ -95,7 +110,7 @@ export class Anatomy {
     mesh.userData = { partId: part.id, layer: part.layer };
     mesh.frustumCulled = true;
     mesh.matrixAutoUpdate = false;
-    this.group.add(mesh);
+    (HEAD_LAYERS.has(part.layer) ? this.headNode : this.bodyNode).add(mesh);
     this.parts.set(part.id, mesh);
     this.byLayer.get(part.layer)?.push(mesh);
     return mesh;
@@ -134,12 +149,19 @@ export class Anatomy {
     }
   }
 
-  /** Bounding box of everything currently visible, in local model space. */
-  visibleBounds(target = new THREE.Box3()) {
+  /** Node that carries a layer (head layers follow the head). */
+  nodeForLayer(layer) {
+    return HEAD_LAYERS.has(layer) ? this.headNode : this.bodyNode;
+  }
+
+  /** Bounding box of everything currently visible, in local model space.
+   *  `layers` narrows it to a subset (the reveal plane uses the head only in mirror mode). */
+  visibleBounds(target = new THREE.Box3(), layers = null) {
     target.makeEmpty();
     const box = new THREE.Box3();
     for (const [layer, meshes] of this.byLayer) {
       if (!this.layerState[layer]) continue;
+      if (layers && !layers.has(layer)) continue;
       for (const mesh of meshes) {
         box.copy(mesh.geometry.boundingBox);
         target.union(box);
@@ -164,12 +186,15 @@ export class Anatomy {
 
 export async function loadAnatomy({ base = './models/', onProgress, onStage } = {}) {
   onStage?.('meta');
-  const metaRes = await fetch(`${base}anatomy.json`, { cache: 'force-cache' });
+  // the version suffix keeps an older cached metadata file from being paired with a new
+  // binary (offsets would no longer match); bump it whenever models/ is rebuilt
+  const version = '3';
+  const metaRes = await fetch(`${base}anatomy.json?v=${version}`);
   if (!metaRes.ok) throw new Error(`anatomy.json · ${metaRes.status}`);
   const meta = await metaRes.json();
 
   onStage?.('bin');
-  const buf = await fetchWithProgress(`${base}anatomy.bin`, onProgress);
+  const buf = await fetchWithProgress(`${base}anatomy.bin?v=${version}`, onProgress);
 
   const anatomy = new Anatomy(meta);
   for (const part of meta.parts) {

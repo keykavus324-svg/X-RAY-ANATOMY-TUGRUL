@@ -30,20 +30,22 @@ Sayfa açıldığında 3B anatomi modeli kendi kendine döner. "Kamerayı başla
 
 1. Tarayıcı kamera izni ister (görüntü hiçbir yere gönderilmez).
 2. Cihaz içi bir yüz modeli 68 nokta bulur.
-3. Kafatası, beyin, yüz kasları, gözler ve boyun omurları göz aralığınıza göre ölçeklenir, başınızın dönüş ve eğimine göre yumuşatılmış biçimde döner.
-4. Anatomi, gerçek görüntünüzün üzerine röntgen gibi ekran karışımıyla çizilir.
+3. Kafatası, beyin, yüz kasları, gözler ve boyun omurları göz aralığınıza göre ölçeklenir, başınızın dönüşüne göre yumuşatılmış biçimde döner. Boynun altındaki iskelet dik durur, sadece hafifçe salınır.
+4. "Tam boy iskelet" düğmesi bütün vücudu sahaya sığdırır: kafatasından ayak parmaklarına kadar 102 parça.
+5. Anatomi, gerçek görüntünüzün üzerine röntgen gibi ekran karışımıyla çizilir.
 
 Kamera olmadan da çalışır: "Kamera olmadan dene" modeli sürükleyip döndürebileceğiniz bir 3B görüntüleyiciye çevirir.
 
 ## Özellikler
 
-- **Gerçek anatomi:** 34 adlandırılmış yapı, 64 ayrı mesh, **175.918 üçgen / 88.130 tepe noktası** — prosedürel bir kafa değil, taranmış yüzeyler.
-- **Beş katman:** kafatası (25 parça), beyin (3), yüz kasları (27), gözler (2), boyun (7). Tek tek açılıp kapatılabilir, hazır ön ayarlar var.
+- **Gerçek anatomi:** 51 adlandırılmış yapı, 102 ayrı mesh, **251.894 üçgen / 126.402 tepe noktası** — prosedürel bir kafa değil, taranmış yüzeyler.
+- **Altı katman:** kafatası (25 parça), beyin (3), yüz kasları (27), gözler (2), boyun (7), **iskelet (38 parça: omurga, 24 kaburga, leğen, kol ve bacak kemikleri, el-ayak)**. Tek tek açılıp kapatılabilir, hazır ön ayarlar var.
+- **İki gövde görünümü:** **Ayna** (iskelet yüzünüze ölçeklenir, vücut aşağı doğru devam eder) ve **Tam boy** (bütün iskelet sahaya sığar, ayaklar görünür).
 - **Üç görünüm:** X-ray (ekran karışımı, kenar parlaması), katı (ışıklı), çizgi (wireframe).
 - **Açılan bölge:** tüm kafa · sol yarı · sağ yarı · üst kısım · alt yüz · **X-ray merceği** (imlecin/parmağın altındaki daire). Kesim düzlemi model uzayında çalışır, yani kafayla birlikte döner.
 - **Otomatik hizalama:** göz aralığı (IOD) ölçülür; boyut, sağ-sol, yukarı-aşağı, öne-arkaya ince ayarı elle de yapılabilir.
 - **Karma gerçeklik:** "Gerçek benlik" kaydırıcısı videonun yoğunluğunu ayarlar; anatomi onun üzerinde okunur.
-- **Anatomi kütüphanesi:** aranabilir 34 yapı listesi (TR + Latince), katman filtresi, seçilen yapı 3B sahnede vurgulanır.
+- **Anatomi kütüphanesi:** aranabilir 51 yapı listesi (TR + Latince), katman filtresi, seçilen yapı 3B sahnede vurgulanır.
 - **Etiketler:** 2D katman üzerinde lider çizgili, çakışmasız yerleşim.
 - **Kare al:** video + WebGL + etiketler tek PNG'de birleştirilir (indirme).
 - **Türkçe / İngilizce**, tercihler `localStorage`'da, klavye kısayolları, tam ekran, erişilebilirlik (skip link, ARIA, `prefers-reduced-motion`).
@@ -53,7 +55,8 @@ Kamera olmadan da çalışır: "Kamera olmadan dene" modeli sürükleyip döndü
 
 | Girdi | Etki |
 | --- | --- |
-| `1` … `5` | Kafatası / beyin / kaslar / gözler / boyun katmanını aç-kapat |
+| `1` … `6` | Kafatası / beyin / kaslar / gözler / boyun / iskelet katmanını aç-kapat |
+| `B` | Gövde görünümü: ayna ↔ tam boy |
 | `X` | Görünüm: X-ray → katı → çizgi |
 | `L` | Etiketler |
 | `V` | Açılan bölge modunu döndür |
@@ -90,14 +93,16 @@ kamera ──► face-api (TinyFaceDetector + 68 landmark, TensorFlow.js/WebGL)
 
 | | |
 | --- | --- |
-| Dosya | `models/anatomy.bin` (1,85 MB) + `models/anatomy.json` (16 KB, meta) |
-| İçerik | 64 mesh, 88.130 köşe, 175.918 üçgen, 34 yapı |
+| Dosya | `models/anatomy.bin` (2,65 MB) + `models/anatomy.json` (25 KB, meta) |
+| İçerik | 102 mesh, 126.402 köşe, 251.894 üçgen, 51 yapı |
 | Konum | `int16`, parça başına min + ext ile çözülür (`min + (q + 32767) / 65534 × ext`) |
 | Normal | `int8` (`n / 127`) |
 | İndeks | parça başına `uint16` (65.535'ten az köşe) |
 | Çerçeve | orijin = göz bebekleri ortası, 1 birim = göz bebekleri arası, +Y yukarı, +Z öne |
 
-Katmanlar: **kafatası 25** (dişler dahil), **beyin 3** (cerebrum, cerebellum, beyin sapı), **yüz kasları 27**, **gözler 2**, **boyun 7** (atlas, axis + 5 servikal omur).
+Katmanlar: **kafatası 25** (dişler dahil), **beyin 3** (cerebrum, cerebellum, beyin sapı), **yüz kasları 27**, **gözler 2**, **boyun 7** (atlas, axis + 5 servikal omur), **iskelet 38** (12 göğüs + 5 bel omuru, sakrum, 24 kaburga, sternum, köprücük, kürek, pazı, radius, ulna, leğen, femur, diz kapağı, tibia, fibula, el ve ayak kemikleri).
+
+Tam iskelet gövde yüksekliği 29,4 birimdir (1 birim = göz aralığı ≈ 58 mm), yani model baştan ayağa tek bir yetişkinin kemik verisidir. `models/anatomy.json` içindeki `bounds` bu tam aralığı verir ve "Tam boy" görünümü ölçeklemeyi buradan hesaplar.
 
 ## Gizlilik
 
@@ -120,7 +125,9 @@ Kamera yalnızca `https://` veya `localhost` üzerinde açılır.
 
 ```bash
 pip install -r tools/requirements.txt
-python tools/build_geometry.py models            # STL/GLB → anatomy.bin + anatomy.json
+python tools/build_geometry.py models            # 1. aşama: kafa (Z-Anatomy + BodyParts3D)
+python tools/build_skeleton.py models            # 2. aşama: tam iskeleti ekler
+node tools/check_site.mjs                        # tarayıcısız doğrulama
 python tools/make_assets.py models assets        # og.png + uygulama ikonları
 ```
 
@@ -160,18 +167,18 @@ Anatomi türevleri (`models/anatomy.bin`, `models/anatomy.json`) CC BY-SA koşul
 
 ## English
 
-**X-Ray Mirror** is a browser-only "anatomy mirror": turn on your camera and a real 3D skull, brain, facial muscles, eyes and cervical spine are aligned to your face in real time.
+**X-Ray Mirror** is a browser-only "anatomy mirror": turn on your camera and a real 3D skull, brain, facial muscles, eyes, cervical spine and a **full skeleton down to the toes** are aligned to your face in real time.
 
 **Live:** <https://keykavus324-svg.github.io/X-RAY-ANATOMY-TUGRUL/>
 
-- Real scanned meshes — 34 named structures, 64 parts, **175,918 triangles / 88,130 vertices** — not a procedural head.
-- Five layers (skull 25, brain 3, muscles 27, eyes 2, neck 7), three looks (X-ray / solid / wire), six reveal modes including a cursor-following **X-ray lens**.
+- Real scanned meshes — 51 named structures, 102 parts, **251,894 triangles / 126,402 vertices** — not a procedural head.
+- Six layers (skull 25, brain 3, muscles 27, eyes 2, neck 7, skeleton 38), two body views (**mirror** aligned to your face, **full body** fitted to the stage), three looks (X-ray / solid / wire), six reveal modes including a cursor-following **X-ray lens**.
 - Face alignment from 68 in-browser landmarks (`face-api.js` + TensorFlow.js), low-pass filtered, with a slowly adapting neutral pose; model units are normalised so the inter-ocular distance is exactly 1.
 - Everything runs on device: no server, no uploads, no analytics, no CDN. Preferences live in `localStorage`.
 - Turkish and English UI, keyboard shortcuts, fullscreen, snapshot to PNG, reduced-motion support.
 
 **Run locally:** `python3 -m http.server 8000` → <http://localhost:8000> (camera needs HTTPS or localhost).
 
-**Rebuild the data:** `python tools/build_geometry.py models` (see `tools/README.md`).
+**Rebuild the data:** `python tools/build_geometry.py models && python tools/build_skeleton.py models` (see `tools/README.md`), then `node tools/check_site.mjs`.
 
 **Licences:** code MIT; Z-Anatomy surfaces CC BY-SA 4.0; BodyParts3D-derived muscles/eyes/vertebrae CC BY-SA 2.1 Japan (attribution required, see above); three.js and face-api.js MIT. **Not a medical device.**
