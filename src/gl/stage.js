@@ -1,0 +1,283 @@
+import * as THREE from 'three';
+import { LAYER_ORDER } from './anatomy.js';
+
+const DEG = Math.PI / 180;
+
+/**
+ * The WebGL stage.
+ *
+ * World units are CSS pixels of the stage at z = 0, so a model whose inter-ocular
+ * distance is 1.0 can be scaled by "measured pixels between the eyes" and it will line
+ * up with the video without any extra projection maths.  A mild perspective camera
+ * (frustum tuned so 1 px at z = 0 equals 1 px on screen) keeps the 3D readable.
+ */
+export class Stage {
+  constructor({ canvas, host, anatomy }) {
+    this.canvas = canvas;
+    this.host = host;
+    this.anatomy = anatomy;
+
+    this.renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: true,
+      premultipliedAlpha: false,
+      powerPreference: 'high-performance',
+    });
+    this.renderer.setClearColor(0x000000, 0);
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(30, 1, 1, 40000);
+    this.camera.position.set(0, 0, 2600);
+    this.camera.lookAt(0, 0, 0);
+
+    this.scene.add(anatomy.group);
+
+    this.width = 1;
+    this.height = 1;
+    this.pixelRatio = 1;
+
+    this.mode = 'present';
+    this.pose = { x: 0, y: 0, iod: 100, yaw: 0, pitch: 0, roll: 0, hasFace: false };
+    this.fit = { scale: 1, dx: 0, dy: 0, dz: 0 };
+    this.autoFit = true;
+
+    this.present = { yaw: 0, pitch: -2 * DEG, dragging: false, lastX: 0, lastY: 0, velYaw: 0, velPitch: 0, zoom: 1 };
+    this.lens = { x: 0.5, y: 0.5, radius: 0.16, active: false };
+    this.revealMode = 0;
+    this.captureCb = null;
+    this.fps = 0;
+    this._frames = 0;
+    this._fpsAt = 0;
+
+    this._tmp = new THREE.Vector3();
+    this._box = new THREE.Box3();
+
+    this._bindPointer();
+    this.resize();
+  }
+
+  /* ------------------------------------------------------------------ size */
+  resize() {
+    const rect = this.host.getBoundingClientRect();
+    const w = Math.max(1, Math.round(rect.width));
+    const h = Math.max(1, Math.round(rect.height));
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.width = w;
+    this.height = h;
+    this.pixelRatio = dpr;
+
+    this.renderer.setPixelRatio(dpr);
+    this.renderer.setSize(w, h, false);
+    this.canvas.style.width = `${w}px`;
+    this.canvas.style.height = `${h}px`;
+
+    // 1 world unit === 1 css pixel on the z = 0 plane
+    const dist = this.camera.position.z;
+    this.camera.aspect = w / h;
+    this.camera.fov = (2 * Math.atan(h / 2 / dist)) / DEG;
+    this.camera.updateProjectionMatrix();
+
+    const size = this.renderer.getDrawingBufferSize(new THREE.Vector2());
+    this.anatomy.globals.uResolution.value.set(size.x, size.y);
+  }
+
+  setMode(mode) {
+    this.mode = mode;
+    if (mode === 'present') {
+      this.present.yaw = 0;
+      this.present.pitch = -2 * DEG;
+      this.present.velYaw = 0;
+      this.present.velPitch = 0;
+    }
+  }
+
+  setPose(pose) {
+    Object.assign(this.pose, pose);
+  }
+
+  setFit(fit) {
+    Object.assign(this.fit, fit);
+  }
+
+  setReveal({ mode, cut, feather }) {
+    const g = this.anatomy.globals;
+    if (mode !== undefined) {
+      this.revealMode = mode === 'whole' ? 0 : (mode === 'left' || mode === 'right') ? 1 : (mode === 'top' || mode === 'bottom') ? 2 : 3;
+      g.uRevealMode.value = this.revealMode;
+      const axis = new THREE.Vector3(0, 0, 0);
+      if (mode === 'left') axis.set(-1, 0, 0);
+      else if (mode === 'right') axis.set(1, 0, 0);
+      else if (mode === 'top') axis.set(0, 1, 0);
+      else if (mode === 'bottom') axis.set(0, -1, 0);
+      g.uAxis.value.copy(axis);
+    }
+    if (cut !== undefined) this.cutValue = cut;
+    if (feather !== undefined) g.uFeather.value = feather * 0.12;
+
+    // map the 0..1 slider onto the model's extent along the chosen axis
+    const box = this._box;
+    this.anatomy.visibleBounds(box);
+    const axis = g.uAxis.value;
+    let lo = 0; let hi = 0;
+    if (this.revealMode === 1) { lo = box.min.x; hi = box.max.x; }
+    else if (this.revealMode === 2) { lo = box.min.y; hi = box.max.y; }
+    const t = this.cutValue ?? 0.5;
+    g.uCut.value = lo + (hi - lo) * (1 - t);
+    void axis;
+  }
+
+  /** Lens centre in CSS px relative to the stage. */
+  setLens(xCss, yCss, radiusCss, active = true) {
+    const g = this.anatomy.globals;
+    this.lens.x = xCss / this.width;
+    this.lens.y = yCss / this.height;
+    this.lens.active = active;
+    g.uLensCenter.value.set(xCss * this.pixelRatio, (this.height - yCss) * this.pixelRatio);
+    g.uLensRadius.value = Math.max(24, radiusCss) * this.pixelRatio;
+  }
+
+  setBrightness(value) {
+    this.anatomy.globals.uBrightness.value = value;
+  }
+
+  /* --------------------------------------------------------------- pointer */
+  _bindPointer() {
+    const el = this.host;
+    const down = (e) => {
+      if (this.mode !== 'present') return;
+      this.present.dragging = true;
+      this.present.lastX = e.clientX;
+      this.present.lastY = e.clientY;
+      el.classList.add('dragging');
+      el.setPointerCapture?.(e.pointerId);
+    };
+    const move = (e) => {
+      if (this.mode === 'present' && this.present.dragging) {
+        const dx = e.clientX - this.present.lastX;
+        const dy = e.clientY - this.present.lastY;
+        this.present.lastX = e.clientX;
+        this.present.lastY = e.clientY;
+        this.present.yaw += dx * 0.006;
+        this.present.pitch = THREE.MathUtils.clamp(this.present.pitch + dy * 0.005, -0.7, 0.7);
+        this.present.velYaw = dx * 0.006;
+        this.present.velPitch = dy * 0.005;
+      }
+      if (this.revealMode === 3) {
+        const rect = el.getBoundingClientRect();
+        this.setLens(e.clientX - rect.left, e.clientY - rect.top, this.lensRadiusPx || 110, true);
+      }
+    };
+    const up = () => {
+      this.present.dragging = false;
+      el.classList.remove('dragging');
+    };
+    el.addEventListener('pointerdown', down);
+    el.addEventListener('pointermove', move, { passive: true });
+    window.addEventListener('pointerup', up);
+    el.addEventListener('pointerleave', () => { if (this.revealMode === 3) this.lens.active = false; });
+    el.addEventListener('touchstart', (e) => {
+      if (this.revealMode === 3 && e.touches[0]) {
+        const rect = el.getBoundingClientRect();
+        this.setLens(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top, this.lensRadiusPx || 110, true);
+      }
+    }, { passive: true });
+  }
+
+  /* ------------------------------------------------------------------ frame */
+  frame(dt, now) {
+    const anatomy = this.anatomy;
+    const g = anatomy.group;
+
+    if (this.mode === 'present') {
+      if (!this.present.dragging) {
+        // gentle idle sway, plus inertia from the last drag
+        this.present.yaw += this.present.velYaw;
+        this.present.pitch = THREE.MathUtils.clamp(this.present.pitch + this.present.velPitch, -0.7, 0.7);
+        this.present.velYaw *= 0.94;
+        this.present.velPitch *= 0.9;
+        this.present.yaw += Math.sin(now / 5200) * 0.00055;
+        if (Math.abs(this.present.velYaw) < 1e-5 && Math.abs(this.present.yaw) > 0.5) this.present.velYaw = -Math.sign(this.present.yaw) * 0.0006;
+      }
+      const box = anatomy.visibleBounds(this._box);
+      const bw = Math.max(box.max.x - box.min.x, 0.6);
+      const bh = Math.max(box.max.y - box.min.y, 0.6);
+      const scale = Math.min((this.width * 0.80) / bw, (this.height * 0.86) / bh) * this.present.zoom;
+      g.scale.setScalar(scale);
+      g.position.set(
+        -(box.min.x + box.max.x) / 2 * scale,
+        -(box.min.y + box.max.y) / 2 * scale,
+        -(box.min.z + box.max.z) / 2 * scale,
+      );
+      g.rotation.set(this.present.pitch, this.present.yaw, 0, 'YXZ');
+    } else {
+      const p = this.pose;
+      const iod = Math.max(p.iod || 90, 12);
+      const s = iod * (this.autoFit ? 1 : 1) * this.fit.scale;
+      g.scale.setScalar(s);
+      const px = p.x - this.width / 2 + this.fit.dx * iod;
+      const py = this.height / 2 - p.y + this.fit.dy * iod;
+      g.position.set(px, py, this.fit.dz * 260);
+      g.rotation.set(p.pitch || 0, p.yaw || 0, p.roll || 0, 'YXZ');
+    }
+
+    if (this.revealMode === 3) {
+      const g2 = anatomy.globals;
+      if (!this.lens.active) {
+        g2.uLensCenter.value.set(this.width * 0.5 * this.pixelRatio, this.height * 0.5 * this.pixelRatio);
+      }
+    }
+
+    this.renderer.render(this.scene, this.camera);
+
+    if (this.captureCb) {
+      const cb = this.captureCb;
+      this.captureCb = null;
+      cb(this.renderer.domElement);
+    }
+
+    this._frames++;
+    if (now - this._fpsAt > 500) {
+      this.fps = Math.round((this._frames * 1000) / (now - this._fpsAt));
+      this._frames = 0;
+      this._fpsAt = now;
+    }
+  }
+
+  /** Grab the current frame.  The copy happens inside the render callback, while the
+   *  WebGL drawing buffer is still valid, so no `preserveDrawingBuffer` is needed. */
+  capture() {
+    return new Promise((resolve) => {
+      this.captureCb = (canvas) => {
+        const copy = document.createElement('canvas');
+        copy.width = canvas.width;
+        copy.height = canvas.height;
+        const ctx = copy.getContext('2d');
+        if (ctx) ctx.drawImage(canvas, 0, 0);
+        resolve(copy);
+      };
+    });
+  }
+
+  /** World (model-local) point -> CSS pixels inside the stage. */
+  project(vector, out = { x: 0, y: 0, visible: false }) {
+    const v = this._tmp.set(vector.x, vector.y, vector.z);
+    this.anatomy.group.localToWorld(v);
+    v.project(this.camera);
+    out.x = (v.x * 0.5 + 0.5) * this.width;
+    out.y = (1 - (v.y * 0.5 + 0.5)) * this.height;
+    out.visible = v.z > -1 && v.z < 1;
+    return out;
+  }
+
+  layerMeshes(layer) {
+    return this.anatomy.byLayer.get(layer) || [];
+  }
+
+  get layerOrder() { return LAYER_ORDER; }
+
+  dispose() {
+    this.renderer.dispose();
+  }
+}
