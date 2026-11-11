@@ -7,7 +7,7 @@ export const LAYER_COLORS = {
   muscles: '#ff6a5a',
   eyes: '#ffe9a8',
   neck: '#a8c8ea',
-  skeleton: '#b8cde8',
+  skeleton: '#e4f0ff',
 };
 
 export const LAYER_ORDER = ['skull', 'brain', 'muscles', 'eyes', 'neck', 'skeleton'];
