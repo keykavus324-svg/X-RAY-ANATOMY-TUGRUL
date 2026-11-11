@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { LAYER_ORDER, HEAD_LAYERS } from './anatomy.js';
+import { MODEL_SHOULDER_Y } from '../vision/bodypose.js';
 
 const DEG = Math.PI / 180;
 
@@ -57,11 +58,90 @@ export class Stage {
     this._frames = 0;
     this._fpsAt = 0;
 
+    // Whole-body anchor (shoulder midline in stage px + shoulder span), fed by the pose
+    // estimator.  When it is present the entire skeleton is placed from it, so the ribs
+    // land on a chest even if the face is out of frame.
+    this.body = { hasBody: false, x: 0, y: 0, scale: 0, hands: [] };
+    this.hands = { l: null, r: null };
     this._tmp = new THREE.Vector3();
     this._box = new THREE.Box3();
 
+    this._buildHands();
     this._bindPointer();
     this.resize();
+  }
+
+  /**
+   * Detached copies of the left/right hand, pivoted at the wrist and parked until the
+   * pose estimator sees that hand.  They share geometry and material with the skeleton,
+   * so they are lit by the same x-ray shader.
+   */
+  _buildHands() {
+    const mk = (side, wrist) => {
+      const node = new THREE.Group();
+      node.name = `hand-${side}`;
+      node.visible = false;
+      const ids = side === 'l'
+        ? ['carpals_l', 'metacarpals_l', 'hand_l']
+        : ['carpals_r', 'metacarpals_r', 'hand_r'];
+      for (const id of ids) {
+        const src = this.anatomy.parts.get(id);
+        if (!src) continue;
+        const mesh = new THREE.Mesh(src.geometry, src.material);
+        mesh.position.set(-wrist.x, -wrist.y, -wrist.z);
+        mesh.renderOrder = src.renderOrder;
+        node.add(mesh);
+      }
+      this.anatomy.group.add(node);
+      return node;
+    };
+    // wrist centres measured from the shipped model
+    this.hands.l = mk('l', { x: -4.62, y: -12.9, z: -0.7 });
+    this.hands.r = mk('r', { x: 4.62, y: -12.9, z: -0.7 });
+  }
+
+  /** The skeleton's own hand meshes, which step aside while a tracked hand is drawn. */
+  _builtinHand(side) {
+    return [`carpals_${side}`, `metacarpals_${side}`, `hand_${side}`]
+      .map((id) => this.anatomy.parts.get(id))
+      .filter(Boolean);
+  }
+
+  /** Parks the detached hands at the wrists the pose estimator reported. */
+  _updateHands(s) {
+    const skeletonOn = this.anatomy.layerState?.skeleton !== false;
+    const on = new Map((this.body.hands || []).map((h) => [h.side, h]));
+    for (const side of ['l', 'r']) {
+      const node = this.hands[side];
+      const h = on.get(side);
+      const show = !!h && skeletonOn;
+      if (node) {
+        if (show) {
+          const mx = (h.x - this.width / 2 - this.anatomy.group.position.x) / s;
+          const my = (this.height / 2 - h.y - this.anatomy.group.position.y) / s;
+          node.position.set(mx, my, 0);
+          // fingers point along the wrist -> knuckles line, whichever way the arm is
+          node.rotation.z = Math.atan2(h.dx, h.dy);
+        }
+        node.visible = show;
+      }
+      // no doubled hands: the model's own hand hides under the tracked one
+      for (const mesh of this._builtinHand(side)) mesh.visible = skeletonOn && !show;
+    }
+  }
+
+  _hideHands() {
+    const skeletonOn = this.anatomy.layerState?.skeleton !== false;
+    if (this.hands.l) this.hands.l.visible = false;
+    if (this.hands.r) this.hands.r.visible = false;
+    for (const side of ['l', 'r']) {
+      for (const mesh of this._builtinHand(side)) mesh.visible = skeletonOn;
+    }
+  }
+
+  /** Body anchor from the pose estimator, already smoothed by the caller. */
+  setBody(body) {
+    Object.assign(this.body, body || { hasBody: false, hands: [] });
   }
 
   /* ------------------------------------------------------------------ size */
@@ -220,6 +300,7 @@ export class Stage {
       g.rotation.set(this.present.pitch * 0.45, this.present.yaw, 0, 'YXZ');
       anatomy.headNode.rotation.set(0, 0, 0);
       anatomy.bodyNode.rotation.set(0, 0, 0);
+      this._hideHands();
     } else {
       const p = this.pose;
       // Only yaw and pitch are used. A webcam estimate of head roll is noisy and tips the
@@ -245,10 +326,27 @@ export class Stage {
         g.position.set(px, -b.min.y * s + floorY + this.fit.dy * 120, this.fit.dz * 260);
         anatomy.headNode.rotation.set(pitch * 0.30, yaw * 0.32, 0, 'YXZ');
         anatomy.bodyNode.rotation.set(0, yaw * 0.12, 0, 'YXZ');
+        this._hideHands();
+      } else if (this.body.hasBody && this.body.scale > 0) {
+        // Whole-body anchor: the shoulder line of the model is dropped onto the measured
+        // shoulder line, so the whole skeleton is life size on the real body — ribs on
+        // the chest, pelvis on the hips, feet wherever the camera reaches.
+        const minSide = Math.min(this.width, this.height);
+        const s = THREE.MathUtils.clamp(this.body.scale, minSide * 0.02, minSide * 0.40) * this.fit.scale;
+        g.scale.setScalar(s);
+        g.position.set(
+          this.body.x - this.width / 2 + this.fit.dx * s,
+          this.height / 2 - this.body.y - MODEL_SHOULDER_Y * s + this.fit.dy * s,
+          this.fit.dz * 260,
+        );
+        anatomy.headNode.rotation.set(pitch * 0.85, yaw * 0.85, 0, 'YXZ');
+        anatomy.bodyNode.rotation.set(0, 0, 0);
+        this._updateHands(s);
       } else {
-        // The anatomy is pinned to the tracked eyes: one model unit *is* the measured
+        // No body yet: fall back to the tracked eyes.  One model unit *is* the measured
         // inter-ocular distance, so the skull lands on the skull and the spine and ribs
         // land on the chest, whatever the camera shows of you.
+        this._hideHands();
         const minSide = Math.min(this.width, this.height);
         const hasFace = !!p.hasFace && p.iod > 0;
         // A lost face used to mean iod = 0, i.e. an 11 px/unit figure pushed half off

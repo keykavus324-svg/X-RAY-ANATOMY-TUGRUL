@@ -28,7 +28,24 @@ const { STRUCTURES, LAYERS } = await import('../src/data/structures.js');
 const { DICT } = await import('../src/i18n.js');
 
 const fail = [];
+
 const ok = (cond, msg) => { if (!cond) fail.push(msg); };
+
+// Vendored trackers must be present: they load at runtime, so a missing file would
+// silently drop body (or face) tracking without any build error.
+for (const rel of [
+  'vendor/face-api/face-api.esm.js',
+  'vendor/face-api/models/tiny_face_detector_model.bin',
+  'vendor/face-api/models/face_landmark_68_model.bin',
+  'vendor/mediapipe/pose/pose.js',
+  'vendor/mediapipe/pose/pose_web.binarypb',
+  'vendor/mediapipe/pose/pose_solution_packed_assets_loader.js',
+  'vendor/mediapipe/pose/pose_solution_packed_assets.data',
+  'vendor/mediapipe/pose/pose_solution_simd_wasm_bin.wasm',
+  'vendor/mediapipe/pose/pose_landmark_lite.tflite',
+]) {
+  ok(fs.existsSync(rel), `missing vendored asset ${rel}`);
+}
 
 const anatomy = await loadAnatomy({ base: 'models/' });
 const meta = anatomy.meta;

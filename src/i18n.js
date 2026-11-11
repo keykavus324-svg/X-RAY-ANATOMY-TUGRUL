@@ -66,6 +66,9 @@ export const DICT = {
 
     'toast.bodyHint': 'Kafanız ve kameradaki tüm bedeniniz x-ray. Sadece kafanız için “Kafam”, sadece göğsünüz için “Göğsüm”.',
     'toast.noFaceTip': 'Yüzünüz algılanamıyor: ışığı önünüze alın, kameraya 50–70 cm yaklaşın.',
+    'status.bodyModel': 'Gövde takibi yükleniyor…',
+    'toast.bodyOn': 'Gövde takibi açık: iskelet bedeninize oturuyor, elinizi kaldırınca el kemikleri de gelir.',
+    'toast.noBody': 'Gövde takibi yüklenemedi; kafa takibi çalışmaya devam ediyor.',
     'toast.snapshot': 'Kare indirildi.',
     'toast.noSnap': 'Kare alınamadı.',
     'toast.camOn': 'Kamera açık.',
@@ -191,6 +194,9 @@ export const DICT = {
 
     'toast.bodyHint': 'Your head and everything else the camera sees is x-ray. Tap “My head” or “My chest” to narrow it down.',
     'toast.noFaceTip': 'Cannot see your face: put the light in front of you and move 50–70 cm closer to the camera.',
+    'status.bodyModel': 'Loading body tracking…',
+    'toast.bodyOn': 'Body tracking on: the skeleton sits on your body, and a raised hand brings its bones.',
+    'toast.noBody': 'Body tracking could not load; head tracking keeps working.',
     'toast.snapshot': 'Snapshot downloaded.',
     'toast.noSnap': 'Could not capture the frame.',
     'toast.camOn': 'Camera on.',
