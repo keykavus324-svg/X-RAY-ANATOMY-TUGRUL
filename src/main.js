@@ -1,11 +1,12 @@
 import { loadAnatomy, LAYER_ORDER } from './gl/anatomy.js';
-import { Stage } from './gl/stage.js?v=14';
+import { Stage } from './gl/stage.js?v=16';
 import { Labels } from './gl/labels.js';
 import { CameraFeed } from './vision/camera.js';
 import { FaceTracker } from './vision/tracker.js?v=12';
 import { HeadPose, measure } from './vision/pose.js?v=15';
+import { BodyPose, bodyAnchor, MODEL_SHOULDER_WIDTH } from './vision/bodypose.js?v=16';
 import { STRUCTURES, LAYERS } from './data/structures.js';
-import { applyI18n, autoLang, getLang, setLang, t } from './i18n.js?v=14';
+import { applyI18n, autoLang, getLang, setLang, t } from './i18n.js?v=16';
 import { initControls } from './ui/controls.js?v=14';
 import { initExplorer } from './ui/explorer.js';
 
@@ -71,6 +72,9 @@ let lastT = 0;
 let detecting = false;
 let faceSeen = false;
 let bodyHintShown = false;
+let bodyPose = null;
+let poseDetecting = false;
+let bodySmooth = { hasBody: false, x: 0, y: 0, scale: 0, miss: 0, hands: [] };
 let lostFrames = 0;
 let saveTimer = 0;
 
@@ -339,6 +343,18 @@ function startLoop() {
         .finally(() => { detecting = false; });
     }
 
+    if (mode === 'track' && bodyPose?.ready && camera?.running && !poseDetecting) {
+      poseDetecting = true;
+      bodyPose
+        .detect(el.video, now)
+        .then((landmarks) => {
+          if (landmarks === undefined) return;           // throttled, keep the last anchor
+          applyBody(landmarks);
+        })
+        .catch(() => {})
+        .finally(() => { poseDetecting = false; });
+    }
+
     stage.frame(dt, now);
     drawLabels();
 
@@ -352,6 +368,45 @@ function startLoop() {
     }
   };
   rafId = requestAnimationFrame(tick);
+}
+
+/**
+ * Smoothed shoulder anchor. Scale is the slowest channel on purpose: a wobbling zoom is
+ * much more distracting than a slightly late fit.
+ */
+function applyBody(landmarks) {
+  const b = bodySmooth;
+  const view = {
+    videoW: camera?.width || 0,
+    videoH: camera?.height || 0,
+    stageW: stage.width,
+    stageH: stage.height,
+  };
+  const anchor = landmarks && view.videoW ? bodyAnchor(landmarks, view) : null;
+
+  if (!anchor) {
+    b.miss++;
+    if (b.miss > 20 && b.hasBody) {
+      b.hasBody = false;
+      stage.setBody({ hasBody: false, hands: [] });
+    }
+    return;
+  }
+
+  b.miss = 0;
+  const scale = anchor.width / MODEL_SHOULDER_WIDTH;
+  if (!b.hasBody) {
+    b.x = anchor.x;
+    b.y = anchor.y;
+    b.scale = scale;
+    b.hasBody = true;
+  } else {
+    b.x += (anchor.x - b.x) * 0.28;
+    b.y += (anchor.y - b.y) * 0.28;
+    b.scale += (scale - b.scale) * 0.14;
+  }
+  b.hands = anchor.hands;
+  stage.setBody({ hasBody: true, x: b.x, y: b.y, scale: b.scale, hands: b.hands });
 }
 
 function drawLabels() {
@@ -409,6 +464,8 @@ async function startCamera() {
   stage.setMode('track');
   faceSeen = false;
   lostFrames = 0;
+  bodySmooth = { hasBody: false, x: 0, y: 0, scale: 0, miss: 0, hands: [] };
+  stage.setBody({ hasBody: false, hands: [] });
   headPose?.reset();
 
   setStatus('status.loading', 'loading');
@@ -427,6 +484,23 @@ async function startCamera() {
   setStatus('status.noface', 'live');
   ui.setMeters({ tris: fmt(anatomy.triangles) });
   toast(t('toast.camOn'), 'ok');
+
+  // Whole-body tracking is the expensive part (a ~12 MB model), so it loads after the
+  // camera is already up.  If it fails the head tracking above keeps carrying the app.
+  if (!bodyPose) {
+    setStatus('status.bodyModel', 'loading');
+    try {
+      bodyPose = new BodyPose();
+      await bodyPose.load();
+      setStatus('status.noface', 'live');
+      toast(t('toast.bodyOn'), 'ok');
+    } catch (err) {
+      console.warn('body pose unavailable', err);
+      bodyPose = null;
+      setStatus('status.noface', 'live');
+      toast(t('toast.noBody'), 'bad');
+    }
+  }
 }
 
 function stopCamera() {
