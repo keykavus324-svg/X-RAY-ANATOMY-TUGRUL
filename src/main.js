@@ -1,12 +1,12 @@
 import { loadAnatomy, LAYER_ORDER } from './gl/anatomy.js';
-import { Stage } from './gl/stage.js?v=12';
+import { Stage } from './gl/stage.js?v=14';
 import { Labels } from './gl/labels.js';
 import { CameraFeed } from './vision/camera.js';
 import { FaceTracker } from './vision/tracker.js?v=12';
 import { HeadPose, measure } from './vision/pose.js';
 import { STRUCTURES, LAYERS } from './data/structures.js';
-import { applyI18n, autoLang, getLang, setLang, t } from './i18n.js?v=12';
-import { initControls } from './ui/controls.js';
+import { applyI18n, autoLang, getLang, setLang, t } from './i18n.js?v=14';
+import { initControls } from './ui/controls.js?v=14';
 import { initExplorer } from './ui/explorer.js';
 
 const $ = (id) => document.getElementById(id);
@@ -18,7 +18,9 @@ const LEGACY_KEYS = ['xrm.prefs.v1', 'xrm.prefs.v2'];
 
 /* ------------------------------------------------------------------ state */
 const DEFAULTS = {
-  layers: { skull: true, brain: true, muscles: false, eyes: true, neck: true, skeleton: true },
+  // Opens on the head x-ray, exactly like the first build: skull, brain, eyes and
+  // neck on the face, nothing standing around it. The chest skeleton is one chip away.
+  layers: { skull: true, brain: true, muscles: false, eyes: true, neck: true, skeleton: false },
   view: 'mirror',
   labels: true,
   look: 'xray',
@@ -39,6 +41,10 @@ function loadState() {
     return {
       ...DEFAULTS,
       ...raw,
+      // Deliberately never restored: the camera has to open on the anatomy that sits on
+      // you (Ayna). The free standing figure is a per-session choice, not a saved one —
+      // a stored 'full' used to hijack every later visit.
+      view: 'mirror',
       layers: { ...DEFAULTS.layers, ...(raw.layers || {}) },
       fit: { ...DEFAULTS.fit, ...(raw.fit || {}) },
     };
@@ -95,7 +101,11 @@ function toast(message, kind = '') {
 function persist() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch { /* private mode */ }
+    try {
+      const { view, ...rest } = state;
+      void view;
+      localStorage.setItem(STORE_KEY, JSON.stringify(rest));
+    } catch { /* private mode */ }
   }, 250);
 }
 
