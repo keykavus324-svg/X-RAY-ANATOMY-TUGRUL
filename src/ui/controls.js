@@ -54,6 +54,8 @@ export function initControls({ state, onChange, actions, t }) {
         : preset === 'brain' ? only('brain')
         : preset === 'muscles' ? only('muscles')
         : preset === 'skeleton' ? only('skull', 'neck', 'skeleton')
+        : preset === 'head' ? only('skull', 'brain', 'eyes', 'neck')
+        : preset === 'chest' ? only('skeleton', 'neck')
         : only('skull', 'brain', 'muscles', 'eyes', 'skeleton', 'neck');
       b.classList.toggle('on', !!match);
     });
@@ -80,6 +82,8 @@ export function initControls({ state, onChange, actions, t }) {
         : p === 'skull' ? { ...base, skull: true, eyes: true }
         : p === 'brain' ? { ...base, brain: true }
         : p === 'muscles' ? { ...base, muscles: true }
+        : p === 'head' ? { ...base, skull: true, brain: true, eyes: true, neck: true }
+        : p === 'chest' ? { ...base, skeleton: true, neck: true }
         : { ...base, skull: true, neck: true, skeleton: true };   // skeleton
       syncLayerBoxes();
       onChange({ type: 'layers' });

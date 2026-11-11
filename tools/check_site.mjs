@@ -123,7 +123,7 @@ for (const m of html.matchAll(/data-filter="([^"]+)"/g)) {
   ok(m[1] === 'all' || LAYER_ORDER.includes(m[1]), `filter chip ${m[1]} is not a layer`);
 }
 for (const m of html.matchAll(/data-preset="([^"]+)"/g)) {
-  ok(['all', 'skull', 'brain', 'muscles', 'skeleton'].includes(m[1]), `preset chip ${m[1]}`);
+  ok(['all', 'skull', 'brain', 'muscles', 'skeleton', 'head', 'chest'].includes(m[1]), `preset chip ${m[1]}`);
 }
 ok(/id="L_skeleton"/.test(html), 'skeleton layer checkbox missing');
 ok(/data-view="full"/.test(html) && /data-view="mirror"/.test(html), 'view mode buttons missing');
