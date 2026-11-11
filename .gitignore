@@ -1,0 +1,3 @@
+
+# local tooling only (check_site.mjs resolves the vendored three build from here)
+node_modules/
