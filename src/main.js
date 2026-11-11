@@ -1,11 +1,11 @@
 import { loadAnatomy, LAYER_ORDER } from './gl/anatomy.js';
-import { Stage } from './gl/stage.js';
+import { Stage } from './gl/stage.js?v=12';
 import { Labels } from './gl/labels.js';
 import { CameraFeed } from './vision/camera.js';
-import { FaceTracker } from './vision/tracker.js';
+import { FaceTracker } from './vision/tracker.js?v=12';
 import { HeadPose, measure } from './vision/pose.js';
 import { STRUCTURES, LAYERS } from './data/structures.js';
-import { applyI18n, autoLang, getLang, setLang, t } from './i18n.js';
+import { applyI18n, autoLang, getLang, setLang, t } from './i18n.js?v=12';
 import { initControls } from './ui/controls.js';
 import { initExplorer } from './ui/explorer.js';
 
@@ -310,6 +310,9 @@ function startLoop() {
           } else {
             lostFrames++;
             if (lostFrames === 30) setStatus('status.noface', 'loading');
+            // three seconds of nothing: say why, instead of letting a still figure
+            // look like a bug
+            if (lostFrames === 90 && !faceSeen) toast(t('toast.noFaceTip'), 'bad');
           }
           if (state.showData) {
             ui.setTrackingData(

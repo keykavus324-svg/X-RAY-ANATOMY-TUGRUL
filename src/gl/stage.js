@@ -246,11 +246,22 @@ export class Stage {
         anatomy.headNode.rotation.set(pitch * 0.30, yaw * 0.32, 0, 'YXZ');
         anatomy.bodyNode.rotation.set(0, yaw * 0.12, 0, 'YXZ');
       } else {
-        const iod = Math.max(p.iod || 90, 12);
+        // The anatomy is pinned to the tracked eyes: one model unit *is* the measured
+        // inter-ocular distance, so the skull lands on the skull and the spine and ribs
+        // land on the chest, whatever the camera shows of you.
+        const minSide = Math.min(this.width, this.height);
+        const hasFace = !!p.hasFace && p.iod > 0;
+        // A lost face used to mean iod = 0, i.e. an 11 px/unit figure pushed half off
+        // the left edge. Until the detector finds you again, stand in for the eyes with
+        // a comfortable placeholder so the body stays readable and centred.
+        const fallback = minSide * 0.115;
+        const iod = THREE.MathUtils.clamp(hasFace ? p.iod : fallback, minSide * 0.055, minSide * 0.55);
         const s = iod * this.fit.scale;
         g.scale.setScalar(s);
-        const px = p.x - this.width / 2 + this.fit.dx * iod;
-        const py = this.height / 2 - p.y + this.fit.dy * iod;
+        const cx = hasFace ? p.x : this.width / 2;
+        const cy = hasFace ? p.y : this.height * 0.40;
+        const px = cx - this.width / 2 + this.fit.dx * iod;
+        const py = this.height / 2 - cy + this.fit.dy * iod;
         g.position.set(px, py, this.fit.dz * 260);
         anatomy.headNode.rotation.set(pitch * 0.85, yaw * 0.85, 0, 'YXZ');
         anatomy.bodyNode.rotation.set(0, yaw * 0.16, 0, 'YXZ');

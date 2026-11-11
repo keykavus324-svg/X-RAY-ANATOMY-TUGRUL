@@ -63,6 +63,7 @@ export const DICT = {
     'fit.hint': 'Otomatik hizalama göz aralığınızı ölçer. İnce ayar için kaydırıcıları kullanın.',
 
     'toast.bodyHint': 'Anatomi artık bedeninizin üzerinde. Tüm iskeleti ayakta görmek için B (Tam boy).',
+    'toast.noFaceTip': 'Yüzünüz algılanamıyor: ışığı önünüze alın, kameraya 50–70 cm yaklaşın.',
     'toast.snapshot': 'Kare indirildi.',
     'toast.noSnap': 'Kare alınamadı.',
     'toast.camOn': 'Kamera açık.',
@@ -187,6 +188,7 @@ export const DICT = {
     'fit.hint': 'Auto align measures the distance between your eyes. Use the sliders for fine tuning.',
 
     'toast.bodyHint': 'The anatomy is on your body now. Press B to see the whole skeleton standing.',
+    'toast.noFaceTip': 'Cannot see your face: put the light in front of you and move 50–70 cm closer to the camera.',
     'toast.snapshot': 'Snapshot downloaded.',
     'toast.noSnap': 'Could not capture the frame.',
     'toast.camOn': 'Camera on.',

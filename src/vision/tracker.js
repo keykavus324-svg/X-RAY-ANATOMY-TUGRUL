@@ -39,12 +39,17 @@ export class FaceTracker {
     this.lastRun = 0;
     this.minInterval = 1000 / 24;
     this.lostFrames = 0;
+    this.missSince = 0;
   }
 
   async load(onProgress) {
     this.faceapi = await loadFaceApi(onProgress);
     const opts = this.faceapi.TinyFaceDetectorOptions || this.faceapi.tinyFaceDetector.TinyFaceDetectorOptions;
-    this.options = new opts({ inputSize: 320, scoreThreshold: 0.32 });
+    // A bigger input plus a lower score gate finds faces in dim light and at arm's
+    // length; the old 320 / 0.32 pair regularly lost the face on a phone camera.
+    this.options = new opts({ inputSize: 416, scoreThreshold: 0.26 });
+    // one heavier pass, only used once the cheap pass has been blind for a while
+    this.wideOptions = new opts({ inputSize: 512, scoreThreshold: 0.18 });
     this.ready = true;
     return this;
   }
@@ -57,15 +62,27 @@ export class FaceTracker {
     if (!video.videoWidth) return null;
 
     let result = null;
+    const blindFor = this.missSince ? now - this.missSince : 0;
     try {
       result = await this.faceapi
-        .detectSingleFace(video, this.options)
+        .detectSingleFace(video, blindFor > 1200 ? this.wideOptions : this.options)
         .withFaceLandmarks();
+      if (!result && blindFor > 1200) {
+        // second chance on the cheap settings in the same tick
+        result = await this.faceapi
+          .detectSingleFace(video, this.options)
+          .withFaceLandmarks();
+      }
     } catch {
       return null;
     }
-    if (!result) { this.lostFrames++; return null; }
+    if (!result) {
+      this.lostFrames++;
+      if (!this.missSince) this.missSince = now;
+      return null;
+    }
     this.lostFrames = 0;
+    this.missSince = 0;
     return result.landmarks;
   }
 
