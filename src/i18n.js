@@ -2,15 +2,15 @@
  * Tiny i18n layer. Turkish is the source language; English mirrors it.
  * Keys are flat strings (dots are literal, not a path).
  */
-const DICT = {
+export const DICT = {
   tr: {
     'skip': 'İçeriğe geç',
     'nav.mirror': 'Ayna', 'nav.anatomy': 'Anatomi', 'nav.how': 'Nasıl çalışır', 'nav.faq': 'SSS',
 
     'hero.eyebrow': 'Canlı anatomi aynası',
     'hero.title': 'Kendi röntgeninize<br>aynadan bakın.',
-    'hero.lede': 'Kameranızı açın: gerçek 3B anatomi verisinden gelen kafatası, beyin ve yüz kasları yüzünüze oturur, siz hareket ettikçe sizinle birlikte hareket eder.',
-    'hero.fact1': 'üçgen, gerçek anatomi', 'hero.fact2': 'cihaz üzerinde', 'hero.fact3': 'katman: kemik, beyin, kas, göz',
+    'hero.lede': 'Kameranızı açın: gerçek 3B anatomi verisinden gelen kafatası, beyin, yüz kasları ve baştan ayağa iskelet yüzünüze oturur, siz hareket ettikçe sizinle birlikte hareket eder.',
+    'hero.fact1': 'üçgen, gerçek anatomi', 'hero.fact2': 'cihaz üzerinde', 'hero.fact3': 'katman, baştan ayağa iskelet',
 
     'btn.start': 'Kamerayı başlat', 'btn.demo': 'Kamera olmadan dene',
     'btn.startCam': 'Kamerayı başlat', 'btn.orbit': 'Sadece 3B’yi göster',
@@ -22,6 +22,7 @@ const DICT = {
 
     'tool.cam': 'Kamera', 'tool.snap': 'Kare al', 'tool.full': 'Tam ekran', 'tool.reset': 'Sıfırla', 'tool.keys': 'Kısayollar',
     'key.skull': 'Kafatası', 'key.brain': 'Beyin', 'key.muscles': 'Kaslar', 'key.eyes': 'Gözler', 'key.neck': 'Boyun',
+    'key.skeleton': 'İskelet', 'key.body': 'Tam boy / ayna',
     'key.xray': 'X-ray / Katı', 'key.labels': 'Etiketler', 'key.reveal': 'Görünüm modu', 'key.full': 'Tam ekran',
     'key.reset': 'Sıfırla', 'key.help': 'Bu liste',
 
@@ -42,10 +43,16 @@ const DICT = {
     'meter.face': 'yüz', 'meter.tris': 'üçgen',
 
     'panel.layers': 'Katmanlar', 'panel.look': 'Görünüm', 'panel.mr': 'Karma gerçeklik',
+    'panel.view': 'Gövde görünümü',
+    'view.mirror': 'Ayna', 'view.full': 'Tam boy',
+    'view.hint': 'Ayna: iskelet yüzünüze ölçeklenir, gövde ekranın altına doğru devam eder. Tam boy: 102 parçanın tamamı (ayak parmaklarına kadar) sahaya sığar.',
     'panel.fit': 'Yüzüme otur', 'panel.note': 'Anatomi tek bir yetişkinin gerçek 3B verisinden gelir ve yüzünüze ölçeklenir. Sizin tomografiniz değildir, tıbbi bir araç değildir.',
-    'preset.all': 'Hepsi', 'preset.skull': 'Kafatası', 'preset.brain': 'Beyin', 'preset.muscles': 'Kaslar',
+    'preset.all': 'Hepsi', 'preset.skeleton': 'İskelet', 'preset.skull': 'Kafatası', 'preset.brain': 'Beyin', 'preset.muscles': 'Kaslar',
     'layer.skull': 'Kafatası', 'layer.brain': 'Beyin', 'layer.muscles': 'Yüz kasları', 'layer.eyes': 'Gözler',
-    'layer.neck': 'Boyun', 'layer.labels': 'Etiketler',
+    'layer.neck': 'Boyun', 'layer.labels': 'Etiketler', 'layer.skeleton': 'İskelet',
+    'filter.skeleton': 'İskelet', 'f7.title': 'Baştan ayağa iskelet',
+    'f7.text': 'Kafatasının altında boyun, göğüs ve bel omurları, 24 kaburga, leğen kemiği, kol ve bacak kemikleri; el ve ayak parmaklarına kadar. Tek bir vücudun gerçek kemik verisi.',
+    'f7.tag': 'kemik grubu',
     'style.xray': 'X-ray', 'style.solid': 'Katı', 'style.wire': 'Çizgi',
     'ctrl.bright': 'Parlaklık', 'ctrl.real': 'Gerçek benlik', 'ctrl.feather': 'Kenar yumuşatma',
     'ctrl.reveal': 'Açılan bölge', 'ctrl.cut': 'Kesim', 'ctrl.autofit': 'Otomatik hizala',
@@ -65,7 +72,7 @@ const DICT = {
 
     'features.eyebrow': 'Ne görüyorsunuz',
     'features.title': 'İçinizde ne var?',
-    'features.lede': 'Beş katman, 34 adlandırılmış yapı. Her katmanı tek tek açın, birlikte gösterin, ışın merceğiyle noktasal inceleyin.',
+    'features.lede': 'Altı katman, 51 adlandırılmış yapı, baştan ayağa iskelet. Her katmanı tek tek açın, birlikte gösterin, ışın merceğiyle noktasal inceleyin.',
     'f1.title': 'Kafatası', 'f1.text': 'Alın, şakak, yanak ve çene kemikleri; dişler dahil. Kafatası gerçek tarama verisinden gelir, her kemiğin kendi yüzeyi vardır.', 'f1.tag': 'kemik',
     'f2.title': 'Beyin', 'f2.text': 'Büyük beyin, beyincik ve beyin sapı. Kıvrımlarıyla birlikte kafatasının içine tam oturur.', 'f2.tag': 'bölge',
     'f3.title': 'Yüz kasları', 'f3.text': 'Şakak, çiğneme, göz çevresi ve dudak kasları. Gülümserken hangi kasın çalıştığını hayal edin.', 'f3.tag': 'kas grubu',
@@ -74,7 +81,7 @@ const DICT = {
     'f6.title': 'Mercek modu', 'f6.text': 'Tüm kafa yerine sadece imlecinizin veya parmağınızın altındaki daireyi açın; kemikler o pencerede görünür.', 'f6.tag': 'etkileşim',
 
     'anatomy.eyebrow': 'Anatomi kütüphanesi', 'anatomy.title': 'Yapıları tek tek tanıyın',
-    'anatomy.lede': '34 yapının adı, yeri ve işlevi. Bir yapıya dokunun: 3B sahnede vurgulanır, açıklaması burada açılır.',
+    'anatomy.lede': '51 yapının adı, yeri ve işlevi. Bir yapıya dokunun: 3B sahnede vurgulanır, açıklaması burada açılır.',
     'anatomy.empty': 'Listeden bir yapı seçin.', 'anatomy.showIn3d': '3B sahnede göster', 'anatomy.layer': 'Katman', 'anatomy.latin': 'Latince',
     'search.ph': 'Ara: kafatası, beyin, masseter…',
     'filter.all': 'Tümü', 'filter.skull': 'Kemik', 'filter.brain': 'Beyin', 'filter.muscles': 'Kas', 'filter.eyes': 'Göz', 'filter.neck': 'Boyun',
@@ -125,8 +132,8 @@ const DICT = {
 
     'hero.eyebrow': 'A live anatomy mirror',
     'hero.title': 'Look at your own<br>X-ray in the mirror.',
-    'hero.lede': 'Open your camera: a skull, a brain and the muscles of your face — all from real 3D anatomical data — land on your face and move with you.',
-    'hero.fact1': 'triangles of real anatomy', 'hero.fact2': 'on your device', 'hero.fact3': 'layers: bone, brain, muscle, eye',
+    'hero.lede': 'Open your camera: skull, brain, facial muscles and a full skeleton — all from real 3D anatomical data — land on your face and move with you.',
+    'hero.fact1': 'triangles of real anatomy', 'hero.fact2': 'on your device', 'hero.fact3': 'layers, head-to-toe skeleton',
 
     'btn.start': 'Start camera', 'btn.demo': 'Try without a camera',
     'btn.startCam': 'Start camera', 'btn.orbit': 'Just show me the 3D',
@@ -138,6 +145,7 @@ const DICT = {
 
     'tool.cam': 'Camera', 'tool.snap': 'Snapshot', 'tool.full': 'Fullscreen', 'tool.reset': 'Reset', 'tool.keys': 'Shortcuts',
     'key.skull': 'Skull', 'key.brain': 'Brain', 'key.muscles': 'Muscles', 'key.eyes': 'Eyes', 'key.neck': 'Neck',
+    'key.skeleton': 'Skeleton', 'key.body': 'Full body / mirror',
     'key.xray': 'X-ray / solid', 'key.labels': 'Labels', 'key.reveal': 'Reveal mode', 'key.full': 'Fullscreen',
     'key.reset': 'Reset', 'key.help': 'This list',
 
@@ -158,10 +166,16 @@ const DICT = {
     'meter.face': 'face', 'meter.tris': 'tris',
 
     'panel.layers': 'Layers', 'panel.look': 'Look', 'panel.mr': 'Mixed reality',
+    'panel.view': 'Body view',
+    'view.mirror': 'Mirror', 'view.full': 'Full body',
+    'view.hint': 'Mirror: the skeleton is scaled to your face and the body runs on below the frame. Full body: all 102 parts fit on the stage, down to the toes.',
     'panel.fit': 'Fit to my head', 'panel.note': 'The anatomy is a real 3D dataset of one adult, scaled to your face. It is not a scan of you and not a medical tool.',
-    'preset.all': 'Everything', 'preset.skull': 'Skull', 'preset.brain': 'Brain', 'preset.muscles': 'Muscles',
+    'preset.all': 'Everything', 'preset.skeleton': 'Skeleton', 'preset.skull': 'Skull', 'preset.brain': 'Brain', 'preset.muscles': 'Muscles',
     'layer.skull': 'Skull', 'layer.brain': 'Brain', 'layer.muscles': 'Face muscles', 'layer.eyes': 'Eyes',
-    'layer.neck': 'Neck', 'layer.labels': 'Labels',
+    'layer.neck': 'Neck', 'layer.labels': 'Labels', 'layer.skeleton': 'Skeleton',
+    'filter.skeleton': 'Skeleton', 'f7.title': 'Skeleton, head to toe',
+    'f7.text': 'Under the skull: neck, thoracic and lumbar spine, 24 ribs, pelvis, arms and legs — down to the finger and toe bones. Real bone geometry of one body.',
+    'f7.tag': 'bone groups',
     'style.xray': 'X-ray', 'style.solid': 'Solid', 'style.wire': 'Wire',
     'ctrl.bright': 'Brightness', 'ctrl.real': 'Real me showing', 'ctrl.feather': 'Edge feather',
     'ctrl.reveal': 'Reveal', 'ctrl.cut': 'Cut position', 'ctrl.autofit': 'Auto align',
@@ -181,7 +195,7 @@ const DICT = {
 
     'features.eyebrow': 'What you are looking at',
     'features.title': 'What is inside your head?',
-    'features.lede': 'Five layers, 34 named structures. Show them one at a time, all together, or inspect a spot with the X-ray lens.',
+    'features.lede': 'Six layers, 51 named structures, a skeleton from head to toe. Show them one at a time, all together, or inspect a spot with the X-ray lens.',
     'f1.title': 'Skull', 'f1.text': 'Frontal, temporal, cheek and jaw bones, teeth included. The skull comes from real scan-derived geometry, with every bone its own surface.', 'f1.tag': 'bones',
     'f2.title': 'Brain', 'f2.text': 'Cerebrum, cerebellum and brainstem, sitting inside the cranial cavity the way they should.', 'f2.tag': 'regions',
     'f3.title': 'Face muscles', 'f3.text': 'Temple, chewing, eye-ring and lip muscles. Imagine which one is working while you smile.', 'f3.tag': 'muscle groups',
@@ -190,7 +204,7 @@ const DICT = {
     'f6.title': 'Lens mode', 'f6.text': 'Instead of opening the whole head, open only a circle under your cursor or fingertip; the bones appear in that window.', 'f6.tag': 'interaction',
 
     'anatomy.eyebrow': 'Anatomy library', 'anatomy.title': 'Learn the parts one by one',
-    'anatomy.lede': 'The name, place and job of 34 structures. Pick one: it is highlighted in the 3D scene and explained here.',
+    'anatomy.lede': 'The name, place and job of 51 structures. Pick one: it is highlighted in the 3D scene and explained here.',
     'anatomy.empty': 'Pick a structure from the list.', 'anatomy.showIn3d': 'Show in 3D', 'anatomy.layer': 'Layer', 'anatomy.latin': 'Latin',
     'search.ph': 'Search: skull, brain, masseter…',
     'filter.all': 'All', 'filter.skull': 'Bone', 'filter.brain': 'Brain', 'filter.muscles': 'Muscle', 'filter.eyes': 'Eye', 'filter.neck': 'Neck',

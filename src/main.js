@@ -10,11 +10,12 @@ import { initControls } from './ui/controls.js';
 import { initExplorer } from './ui/explorer.js';
 
 const $ = (id) => document.getElementById(id);
-const STORE_KEY = 'xrm.prefs.v1';
+const STORE_KEY = 'xrm.prefs.v2';
 
 /* ------------------------------------------------------------------ state */
 const DEFAULTS = {
-  layers: { skull: true, brain: true, muscles: false, eyes: true, neck: false },
+  layers: { skull: true, brain: true, muscles: false, eyes: true, neck: false, skeleton: true },
+  view: 'mirror',
   labels: true,
   look: 'xray',
   brightness: 1.15,
@@ -226,6 +227,10 @@ function handleChange(change) {
     case 'fit':
       stage.setFit(state.fit);
       break;
+    case 'view':
+      stage.setViewMode(state.view);
+      applyReveal();
+      break;
     case 'labels':
       if (!state.labels) labels.clear();
       break;
@@ -240,6 +245,7 @@ function applyAll() {
   anatomy.setLook(state.look);
   stage.setBrightness(state.brightness);
   stage.setFit(state.fit);
+  stage.setViewMode(state.view);
   applyRealMe();
   applyReveal();
   ui.sync();
@@ -331,16 +337,17 @@ function drawLabels() {
     if (!state.layers[s.layer]) continue;
     const geo = anatomy.structureById.get(s.id);
     if (!geo || !geo.anchors?.length) continue;
+    const node = anatomy.nodeForLayer(s.layer);
     const names = s.labels ? s.labels[lang] : null;
     if (s.labels) {
       geo.anchors.forEach((a, i) => {
-        const p = stage.project({ x: a[0], y: a[1], z: a[2] });
+        const p = stage.project({ x: a[0], y: a[1], z: a[2] }, undefined, node);
         if (!p.visible || p.x < 0 || p.x > stage.width || p.y < 0 || p.y > stage.height) return;
         items.push({ id: `${s.id}-${i}`, text: names[i] || names[0], x: p.x, y: p.y, color: LAYERS[s.layer].color });
       });
     } else {
       const a = geo.anchors[0];
-      const p = stage.project({ x: a[0], y: a[1], z: a[2] });
+      const p = stage.project({ x: a[0], y: a[1], z: a[2] }, undefined, node);
       if (!p.visible || p.x < 0 || p.x > stage.width || p.y < 0 || p.y > stage.height) return;
       items.push({ id: s.id, text: s[lang].name, x: p.x, y: p.y, color: LAYERS[s.layer].color });
     }
@@ -497,6 +504,8 @@ function fullscreen() {
 
 function reset() {
   state.layers = { ...DEFAULTS.layers };
+  state.view = DEFAULTS.view;
+  stage?.setViewMode(state.view);
   state.look = DEFAULTS.look;
   state.brightness = DEFAULTS.brightness;
   state.realMe = DEFAULTS.realMe;
@@ -559,6 +568,13 @@ function bindKeyboard() {
     else if (k === '3') setLayer('muscles');
     else if (k === '4') setLayer('eyes');
     else if (k === '5') setLayer('neck');
+    else if (k === '6') setLayer('skeleton');
+    else if (k === 'b') {
+      state.view = state.view === 'full' ? 'mirror' : 'full';
+      stage?.setViewMode(state.view);
+      ui?.sync();
+      persist();
+    }
     else if (k === 'x') {
       state.look = state.look === 'xray' ? 'solid' : state.look === 'solid' ? 'wire' : 'xray';
       anatomy?.setLook(state.look);

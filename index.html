@@ -15,7 +15,7 @@
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./assets/icon-192.png">
 <link rel="manifest" href="./site.webmanifest">
-<link rel="stylesheet" href="./assets/css/app.css?v=2">
+<link rel="stylesheet" href="./assets/css/app.css?v=3">
 <script type="importmap">
 { "imports": { "three": "./vendor/three/three.module.js" } }
 </script>
@@ -65,7 +65,7 @@
         <button id="demoBtn" class="btn ghost" type="button" data-i18n="btn.demo">Kamera olmadan dene</button>
       </div>
       <ul class="hero-facts">
-        <li><b>176k</b><span data-i18n="hero.fact1">üçgen, gerçek anatomi</span></li>
+        <li><b>252k</b><span data-i18n="hero.fact1">üçgen, gerçek anatomi</span></li>
         <li><b>%100</b><span data-i18n="hero.fact2">cihaz üzerinde</span></li>
         <li><b>4</b><span data-i18n="hero.fact3">katman: kemik, beyin, kas, göz</span></li>
       </ul>
@@ -135,6 +135,8 @@
             <kbd>3</kbd><span data-i18n="key.muscles">Kaslar</span>
             <kbd>4</kbd><span data-i18n="key.eyes">Gözler</span>
             <kbd>5</kbd><span data-i18n="key.neck">Boyun</span>
+            <kbd>6</kbd><span data-i18n="key.skeleton">İskelet</span>
+            <kbd>B</kbd><span data-i18n="key.body">Tam boy / ayna</span>
             <kbd>X</kbd><span data-i18n="key.xray">X-ray / Katı</span>
             <kbd>L</kbd><span data-i18n="key.labels">Etiketler</span>
             <kbd>V</kbd><span data-i18n="key.reveal">Görünüm modu</span>
@@ -154,7 +156,7 @@
           <div class="meter">
             <span><b id="fpsVal">—</b> FPS</span>
             <span><b id="faceVal">—</b> <span data-i18n="meter.face">yüz</span></span>
-            <span><b id="triVal">176k</b> <span data-i18n="meter.tris">üçgen</span></span>
+            <span><b id="triVal">252k</b> <span data-i18n="meter.tris">üçgen</span></span>
           </div>
         </div>
 
@@ -162,6 +164,7 @@
           <h3 data-i18n="panel.layers">Katmanlar</h3>
           <div class="chips" role="group" aria-label="Hazır görünümler">
             <button class="chip" data-preset="all" data-i18n="preset.all">Hepsi</button>
+            <button class="chip" data-preset="skeleton" data-i18n="preset.skeleton">İskelet</button>
             <button class="chip" data-preset="skull" data-i18n="preset.skull">Kafatası</button>
             <button class="chip" data-preset="brain" data-i18n="preset.brain">Beyin</button>
             <button class="chip" data-preset="muscles" data-i18n="preset.muscles">Kaslar</button>
@@ -172,6 +175,7 @@
             <label class="ck"><input type="checkbox" id="L_muscles"><i style="--c:#ff6a5a"></i><span data-i18n="layer.muscles">Yüz kasları</span></label>
             <label class="ck"><input type="checkbox" id="L_eyes"><i style="--c:#ffe9a8"></i><span data-i18n="layer.eyes">Gözler</span></label>
             <label class="ck"><input type="checkbox" id="L_neck"><i style="--c:#a8c8ea"></i><span data-i18n="layer.neck">Boyun</span></label>
+            <label class="ck"><input type="checkbox" id="L_skeleton" checked><i style="--c:#b8cde8"></i><span data-i18n="layer.skeleton">İskelet</span></label>
             <label class="ck"><input type="checkbox" id="labels"><i style="--c:#7fd1ff"></i><span data-i18n="layer.labels">Etiketler</span></label>
           </div>
         </div>
@@ -204,6 +208,15 @@
         </div>
 
         <div class="panel-block">
+          <h3 data-i18n="panel.view">Gövde görünümü</h3>
+          <div class="seg" id="view" role="group" aria-label="Gövde görünümü">
+            <button data-view="mirror" class="on" data-i18n="view.mirror">Ayna</button>
+            <button data-view="full" data-i18n="view.full">Tam boy</button>
+          </div>
+          <p class="help" data-i18n="view.hint">Ayna modunda iskelet yüzünüze ölçeklenir; tam boy modunda 102 parçanın tamamı sahaya sığar.</p>
+        </div>
+
+        <div class="panel-block">
           <h3 data-i18n="panel.fit">Yüzüme otur</h3>
           <label class="ck switch"><input type="checkbox" id="autoFit" checked><span data-i18n="ctrl.autofit">Otomatik hizala</span></label>
           <label class="row"><span data-i18n="ctrl.size">Boyut</span><input id="fitSize" type="range" min="0.6" max="1.5" step="0.005" value="1"></label>
@@ -227,7 +240,7 @@
     <div class="band-head">
       <p class="eyebrow"><span class="dot"></span><span data-i18n="features.eyebrow">Ne görüyorsunuz</span></p>
       <h2 data-i18n="features.title">İçinizde ne var?</h2>
-      <p class="lede" data-i18n="features.lede">Beş katman, 34 adlandırılmış yapı. Her katmanı tek tek açın, birlikte gösterin, ışın merceğiyle noktasal inceleyin.</p>
+      <p class="lede" data-i18n="features.lede">Altı katman, 51 adlandırılmış yapı. Her katmanı tek tek açın, birlikte gösterin, ışın merceğiyle noktasal inceleyin.</p>
     </div>
     <div class="cards">
       <article class="card">
@@ -251,6 +264,11 @@
         <span class="tag">7 <span data-i18n="f4.tag">omur</span></span>
       </article>
       <article class="card">
+        <h3 data-i18n="f7.title">Baştan ayağa iskelet</h3>
+        <p data-i18n="f7.text">Kafatasının altında boyun, göğüs ve bel omurları, 24 kaburga, leğen kemiği, kol ve bacak kemikleri; el ve ayak parmaklarına kadar. Tek bir vücudun gerçek kemik verisi.</p>
+        <span class="tag">38 <span data-i18n="f7.tag">kemik grubu</span></span>
+      </article>
+      <article class="card">
         <h3 data-i18n="f5.title">Kendi yüzünüz</h3>
         <p data-i18n="f5.text">Gerçek görüntü ile anatomi karışır: “Gerçek benlik” kaydırıcısı ile kendi yüzünüzü anatominin içinden görürsünüz.</p>
         <span class="tag" data-i18n="f5.tag">karışım</span>
@@ -267,7 +285,7 @@
     <div class="band-head">
       <p class="eyebrow"><span class="dot"></span><span data-i18n="anatomy.eyebrow">Anatomi kütüphanesi</span></p>
       <h2 data-i18n="anatomy.title">Yapıları tek tek tanıyın</h2>
-      <p class="lede" data-i18n="anatomy.lede">34 yapının adı, yeri ve işlevi. Bir yapıya dokunun: 3B sahnede vurgulanır, açıklaması burada açılır.</p>
+      <p class="lede" data-i18n="anatomy.lede">51 yapının adı, yeri ve işlevi. Bir yapıya dokunun: 3B sahnede vurgulanır, açıklaması burada açılır.</p>
     </div>
     <div class="explorer">
       <div class="explorer-list">
@@ -280,6 +298,7 @@
             <button class="chip" data-filter="muscles" data-i18n="filter.muscles">Kas</button>
             <button class="chip" data-filter="eyes" data-i18n="filter.eyes">Göz</button>
             <button class="chip" data-filter="neck" data-i18n="filter.neck">Boyun</button>
+            <button class="chip" data-filter="skeleton" data-i18n="filter.skeleton">İskelet</button>
           </div>
         </div>
         <p class="struct-count" id="structCount" aria-live="polite"></p>

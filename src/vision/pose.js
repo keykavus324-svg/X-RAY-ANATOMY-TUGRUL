@@ -62,16 +62,37 @@ export function measure(landmarks) {
     y: (pts[IDX_MOUTH_L].y + pts[IDX_MOUTH_R].y) / 2,
   };
 
+  // A face that is half out of frame (or a rotated camera) yields landmarks whose eye
+  // line is nearly vertical; every offset measured from it would be nonsense, so the
+  // frame is skipped instead of tipping the model over.
+  const roll = Math.atan2(dy, dx);
+  if (Math.abs(Math.abs(roll) - Math.PI / 2) < 0.35) return null;
+
+  // Measure in the head's own frame: rotating the offsets by -roll makes yaw/pitch
+  // independent of how the head (or the camera) is tilted in the picture.
+  const c = Math.cos(roll);
+  const s = Math.sin(roll);
+  const at = (p) => {
+    const nx = (p.x - ex) / iod;
+    const ny = (p.y - ey) / iod;
+    return { x: c * nx + s * ny, y: -s * nx + c * ny };
+  };
+  const noseOff = at(nose);
+  const mouthOff = at(mouth);
+  const chinOff = at(chin);
+  const eyeballCentre = at({ x: ex, y: ey });
+
   return {
     x: ex,
     y: ey,
     iod,
-    roll: Math.atan2(dy, dx),
-    noseOffX: (nose.x - ex) / iod,
-    noseOffY: (nose.y - ey) / iod,
-    mouthOffX: (mouth.x - ex) / iod,
-    chinRatio: (chin.y - ey) / iod,
-    mouthRatio: (mouth.y - ey) / iod,
+    roll,
+    noseOffX: noseOff.x,
+    noseOffY: noseOff.y,
+    mouthOffX: mouthOff.x,
+    chinRatio: chinOff.y,
+    mouthRatio: mouthOff.y,
+    eyeOffY: eyeballCentre.y,
   };
 }
 

@@ -7,7 +7,7 @@ OUT = sys.argv[2] if len(sys.argv) > 2 else '/home/user/work/preview.png'
 meta = json.load(open(f'{MODELS}/anatomy.json'))
 buf = open(f'{MODELS}/anatomy.bin', 'rb').read()
 LAYER_COL = {'skull': (200, 228, 255), 'brain': (255, 150, 190), 'muscles': (255, 110, 96),
-             'eyes': (255, 245, 170), 'neck': (150, 200, 240)}
+             'eyes': (255, 245, 170), 'neck': (150, 200, 240), 'skeleton': (176, 198, 226)}
 
 def decode_part(p):
     v = np.frombuffer(buf, dtype='<i2', count=p['vCount']*3, offset=p['vOff']).reshape(-1, 3).astype(np.float32)
@@ -66,7 +66,7 @@ def render(view, W=480, H=620, layers=None, zoom=3.4, ctr_override=None, cy=0.0)
         rgb = np.clip(col[None, :]*shade[:, None], 0, 1)
         chosen.setdefault(ly, []).append((pix, z, rgb))
     # second pass: write only samples that are (near) the front-most
-    order = ['neck', 'brain', 'muscles', 'eyes', 'skull']
+    order = ['skeleton', 'neck', 'brain', 'muscles', 'eyes', 'skull']
     for ly in order:
         for pix, z, rgb in chosen.get(ly, []):
             m = z >= zbuf[pix] - 1e-4
@@ -77,13 +77,17 @@ brain_only = np.concatenate([p['vv'] for p in parts if p['meta']['layer']=='brai
 bc = (brain_only.min(0)+brain_only.max(0))/2
 skull_only = np.concatenate([p['vv'] for p in parts if p['meta']['layer']=='skull'])
 sc = (skull_only.min(0)+skull_only.max(0))/2
+HEAD = {'skull', 'brain', 'muscles', 'eyes', 'neck'}
+bones = np.concatenate([p['vv'] for p in parts if p['meta']['layer'] in ('skull', 'skeleton')])
+bdc = (bones.min(0) + bones.max(0)) / 2
+body_zoom = max(bones.max(0)[1] - bones.min(0)[1], bones.max(0)[0] - bones.min(0)[0]) * 1.06
 views = [
-  ('front', None, 2.9, sc, 0.0),
-  ('q35', None, 2.9, sc, 0.0),
-  ('side', None, 2.9, sc, 0.0),
-  ('front', {'brain'}, 1.75, bc, 0.0),
+  ('front', HEAD, 2.9, sc, 0.0),
+  ('side', HEAD, 2.9, sc, 0.0),
+  ('front', {'skull', 'skeleton'}, body_zoom, bdc, 0.0),
+  ('side', {'skull', 'skeleton'}, body_zoom, bdc, 0.0),
+  ('q35', None, body_zoom, bdc, 0.0),
   ('side', {'brain'}, 1.75, bc, 0.0),
-  ('q35', {'brain','skull'}, 2.9, sc, 0.0),
 ]
 tiles = [render(v, layers=l, zoom=z, ctr_override=c) for v, l, z, c, _ in views]
 W, H = 480, 620

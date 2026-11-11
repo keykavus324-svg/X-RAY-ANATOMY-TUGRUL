@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { LAYER_ORDER } from './anatomy.js';
+import { LAYER_ORDER, HEAD_LAYERS } from './anatomy.js';
 
 const DEG = Math.PI / 180;
 
@@ -42,6 +42,12 @@ export class Stage {
     this.pose = { x: 0, y: 0, iod: 100, yaw: 0, pitch: 0, roll: 0, hasFace: false };
     this.fit = { scale: 1, dx: 0, dy: 0, dz: 0 };
     this.autoFit = true;
+    this.viewMode = 'mirror';      // 'mirror' = head-aligned, 'full' = whole body on stage
+    const mb = anatomy?.meta?.bounds;
+    this.modelBounds = new THREE.Box3(
+      new THREE.Vector3(mb?.min?.[0] ?? -2.4, mb?.min?.[1] ?? -3.3, mb?.min?.[2] ?? -2.9),
+      new THREE.Vector3(mb?.max?.[0] ?? 2.4, mb?.max?.[1] ?? 2.0, mb?.max?.[2] ?? 0.7),
+    );
 
     this.present = { yaw: 0, pitch: -2 * DEG, dragging: false, lastX: 0, lastY: 0, velYaw: 0, velPitch: 0, zoom: 1 };
     this.lens = { x: 0.5, y: 0.5, radius: 0.16, active: false };
@@ -118,7 +124,8 @@ export class Stage {
 
     // map the 0..1 slider onto the model's extent along the chosen axis
     const box = this._box;
-    this.anatomy.visibleBounds(box);
+    // in mirror mode the cut plane belongs to the head, not to the whole skeleton
+    this.anatomy.visibleBounds(box, this.viewMode === 'mirror' ? HEAD_LAYERS : null);
     const axis = g.uAxis.value;
     let lo = 0; let hi = 0;
     if (this.revealMode === 1) { lo = box.min.x; hi = box.max.x; }
@@ -210,16 +217,41 @@ export class Stage {
         -(box.min.y + box.max.y) / 2 * scale,
         -(box.min.z + box.max.z) / 2 * scale,
       );
-      g.rotation.set(this.present.pitch, this.present.yaw, 0, 'YXZ');
+      g.rotation.set(this.present.pitch * 0.45, this.present.yaw, 0, 'YXZ');
+      anatomy.headNode.rotation.set(0, 0, 0);
+      anatomy.bodyNode.rotation.set(0, 0, 0);
     } else {
       const p = this.pose;
-      const iod = Math.max(p.iod || 90, 12);
-      const s = iod * (this.autoFit ? 1 : 1) * this.fit.scale;
-      g.scale.setScalar(s);
-      const px = p.x - this.width / 2 + this.fit.dx * iod;
-      const py = this.height / 2 - p.y + this.fit.dy * iod;
-      g.position.set(px, py, this.fit.dz * 260);
-      g.rotation.set(p.pitch || 0, p.yaw || 0, p.roll || 0, 'YXZ');
+      // Only yaw and pitch are used. A webcam estimate of head roll is noisy and tips the
+      // whole figure on its side, which is never what the mirror should show.
+      const yaw = THREE.MathUtils.clamp(p.yaw || 0, -0.95, 0.95);
+      const pitch = THREE.MathUtils.clamp(p.pitch || 0, -0.6, 0.6);
+      g.rotation.set(0, 0, 0);
+
+      if (this.viewMode === 'full') {
+        // the whole skeleton, centred and standing upright on the stage
+        const b = this.modelBounds;
+        const bw = Math.max(b.max.x - b.min.x, 1);
+        const bh = Math.max(b.max.y - b.min.y, 1);
+        const s = Math.min((this.width * 0.88) / bw, (this.height * 0.94) / bh) * this.fit.scale;
+        g.scale.setScalar(s);
+        g.position.set(
+          -(b.min.x + b.max.x) / 2 * s + this.fit.dx * 120,
+          -(b.min.y + b.max.y) / 2 * s + this.fit.dy * 120,
+          this.fit.dz * 260,
+        );
+        anatomy.headNode.rotation.set(pitch * 0.30, yaw * 0.32, 0, 'YXZ');
+        anatomy.bodyNode.rotation.set(0, yaw * 0.12, 0, 'YXZ');
+      } else {
+        const iod = Math.max(p.iod || 90, 12);
+        const s = iod * this.fit.scale;
+        g.scale.setScalar(s);
+        const px = p.x - this.width / 2 + this.fit.dx * iod;
+        const py = this.height / 2 - p.y + this.fit.dy * iod;
+        g.position.set(px, py, this.fit.dz * 260);
+        anatomy.headNode.rotation.set(pitch * 0.85, yaw * 0.85, 0, 'YXZ');
+        anatomy.bodyNode.rotation.set(0, yaw * 0.16, 0, 'YXZ');
+      }
     }
 
     if (this.revealMode === 3) {
@@ -261,14 +293,18 @@ export class Stage {
   }
 
   /** World (model-local) point -> CSS pixels inside the stage. */
-  project(vector, out = { x: 0, y: 0, visible: false }) {
+  project(vector, out = { x: 0, y: 0, visible: false }, node = null) {
     const v = this._tmp.set(vector.x, vector.y, vector.z);
-    this.anatomy.group.localToWorld(v);
+    (node || this.anatomy.group).localToWorld(v);
     v.project(this.camera);
     out.x = (v.x * 0.5 + 0.5) * this.width;
     out.y = (1 - (v.y * 0.5 + 0.5)) * this.height;
     out.visible = v.z > -1 && v.z < 1;
     return out;
+  }
+
+  setViewMode(mode) {
+    this.viewMode = mode === 'full' ? 'full' : 'mirror';
   }
 
   layerMeshes(layer) {
