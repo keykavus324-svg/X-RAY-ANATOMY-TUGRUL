@@ -144,8 +144,17 @@ export class HeadPose {
       this.baseline.mouth += (m.mouthRatio - this.baseline.mouth) * 0.006;
     }
 
-    const yawRaw = clamp(2.3 * m.noseOffX, -0.95, 0.95);
-    const pitchRaw = clamp(1.15 * (m.chinRatio - this.baseline.chin) + 0.6 * (m.mouthRatio - this.baseline.mouth), -0.6, 0.6);
+    // Signs, once, in one place — the picture is mirrored before it reaches the screen,
+    // so a nose that drifts to the right of the raw frame has to turn the model to the
+    // left. Getting this backwards made the skull stare away from the face it sits on.
+    // Pitch: chin approaching the eyes means the head is tilting down, which is a
+    // positive rotation about X for a model whose front is +Z.
+    const yawRaw = clamp(-2.3 * m.noseOffX, -0.95, 0.95);
+    const pitchRaw = clamp(
+      -(1.15 * (m.chinRatio - this.baseline.chin) + 0.6 * (m.mouthRatio - this.baseline.mouth)),
+      -0.6,
+      0.6,
+    );
 
     const iod = this.fi.filter(m.iod, dt, 0.9, 0.05);
     const vx = this.fx.filter(m.x, dt, 1.1, 0.03);

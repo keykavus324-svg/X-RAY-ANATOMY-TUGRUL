@@ -64,7 +64,7 @@ export const DICT = {
     'reveal.top': 'Üst kısım', 'reveal.bottom': 'Alt yüz', 'reveal.lens': 'X-ray merceği',
     'fit.hint': 'Otomatik hizalama göz aralığınızı ölçer. İnce ayar için kaydırıcıları kullanın.',
 
-    'toast.bodyHint': 'Kafanız x-ray oldu. Göğüs kafesiniz için “Göğsüm”, tam iskelet için B.',
+    'toast.bodyHint': 'Kafanız ve kameradaki tüm bedeniniz x-ray. Sadece kafanız için “Kafam”, sadece göğsünüz için “Göğsüm”.',
     'toast.noFaceTip': 'Yüzünüz algılanamıyor: ışığı önünüze alın, kameraya 50–70 cm yaklaşın.',
     'toast.snapshot': 'Kare indirildi.',
     'toast.noSnap': 'Kare alınamadı.',
@@ -189,7 +189,7 @@ export const DICT = {
     'reveal.top': 'Top of the head', 'reveal.bottom': 'Lower face', 'reveal.lens': 'X-ray lens',
     'fit.hint': 'Auto align measures the distance between your eyes. Use the sliders for fine tuning.',
 
-    'toast.bodyHint': 'Your head is x-ray now. Tap “My chest” for the rib cage, or B for the whole skeleton.',
+    'toast.bodyHint': 'Your head and everything else the camera sees is x-ray. Tap “My head” or “My chest” to narrow it down.',
     'toast.noFaceTip': 'Cannot see your face: put the light in front of you and move 50–70 cm closer to the camera.',
     'toast.snapshot': 'Snapshot downloaded.',
     'toast.noSnap': 'Could not capture the frame.',

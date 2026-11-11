@@ -3,7 +3,7 @@ import { Stage } from './gl/stage.js?v=14';
 import { Labels } from './gl/labels.js';
 import { CameraFeed } from './vision/camera.js';
 import { FaceTracker } from './vision/tracker.js?v=12';
-import { HeadPose, measure } from './vision/pose.js';
+import { HeadPose, measure } from './vision/pose.js?v=15';
 import { STRUCTURES, LAYERS } from './data/structures.js';
 import { applyI18n, autoLang, getLang, setLang, t } from './i18n.js?v=14';
 import { initControls } from './ui/controls.js?v=14';
@@ -18,9 +18,10 @@ const LEGACY_KEYS = ['xrm.prefs.v1', 'xrm.prefs.v2'];
 
 /* ------------------------------------------------------------------ state */
 const DEFAULTS = {
-  // Opens on the head x-ray, exactly like the first build: skull, brain, eyes and
-  // neck on the face, nothing standing around it. The chest skeleton is one chip away.
-  layers: { skull: true, brain: true, muscles: false, eyes: true, neck: true, skeleton: false },
+  // Everything except the surface muscles, at life size on your own body: whatever the
+  // camera shows of you gets the x-ray, and the parts that fall outside the frame simply
+  // are not there. No miniature full-body figure, no missing body either.
+  layers: { skull: true, brain: true, muscles: false, eyes: true, neck: true, skeleton: true },
   view: 'mirror',
   labels: true,
   look: 'xray',
