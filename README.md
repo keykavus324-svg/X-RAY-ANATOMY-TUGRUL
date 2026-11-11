@@ -128,12 +128,11 @@ python tools/make_assets.py models assets        # og.png + uygulama ikonları
 
 ## Yayınlama
 
-GitHub Pages, `main` dalının kökünden yayınlanır (build adımı yok, `.nojekyll` var):
+Site tamamen statiktir; build adımı yoktur. GitHub Pages'ten yayınlamak için:
 
-```bash
-git push origin main
-gh api -X POST repos/:owner/:repo/pages -f 'source[branch]=main' -f 'source[path]=/'
-```
+**Settings → Pages → Build and deployment → Source: _Deploy from a branch_ → Branch: `main`, klasör: `/ (root)` → Save**
+
+Birkaç dakika içinde `https://keykavus324-svg.github.io/X-RAY-ANATOMY-TUGRUL/` adresinde yayında olur. Depoda `.nojekyll` dosyası var, olduğu gibi servis edilir. Kök klasör yerine `main` dalının kökü seçildiği için `vendor/`, `models/` ve `src/` yolları değişmeden çalışır.
 
 ## Tarayıcı desteği
 
