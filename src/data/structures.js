@@ -9,7 +9,7 @@ export const LAYERS = {
   muscles: { tr: 'Kas',    en: 'Muscle', color: '#ff6a5a' },
   eyes:    { tr: 'Göz',    en: 'Eye',    color: '#ffe9a8' },
   neck:    { tr: 'Boyun',  en: 'Neck',   color: '#a8c8ea' },
-  skeleton: { tr: 'İskelet', en: 'Skeleton', color: '#b8cde8' },
+  skeleton: { tr: 'İskelet', en: 'Skeleton', color: '#e4f0ff' },
 };
 
 /* ------------------------------------------------------------------ skeleton

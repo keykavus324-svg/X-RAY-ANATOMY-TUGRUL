@@ -45,7 +45,13 @@ export class Labels {
 
     const pad = 7;
     const boxH = 20;
-    const take = [...items].sort((a, b) => a.y - b.y).slice(0, 18);
+    // Spread the pills over the visible figure instead of keeping the topmost ones:
+    // in full-body view the skull alone would otherwise eat every slot.
+    const sorted = [...items].sort((a, b) => a.y - b.y);
+    const max = 14;
+    const take = sorted.length <= max
+      ? sorted
+      : Array.from({ length: max }, (_, i) => sorted[Math.round((i * (sorted.length - 1)) / (max - 1))]);
 
     for (const item of take) {
       const label = item.text;

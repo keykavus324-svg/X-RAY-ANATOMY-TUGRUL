@@ -229,17 +229,20 @@ export class Stage {
       g.rotation.set(0, 0, 0);
 
       if (this.viewMode === 'full') {
-        // the whole skeleton, centred and standing upright on the stage
+        // The whole skeleton, standing on the floor of the stage and following you
+        // sideways, so it reads as a figure in front of you rather than a floating toy.
         const b = this.modelBounds;
         const bw = Math.max(b.max.x - b.min.x, 1);
         const bh = Math.max(b.max.y - b.min.y, 1);
-        const s = Math.min((this.width * 0.88) / bw, (this.height * 0.94) / bh) * this.fit.scale;
+        const s = Math.min((this.width * 0.90) / bw, (this.height * 0.97) / bh) * this.fit.scale;
         g.scale.setScalar(s);
-        g.position.set(
-          -(b.min.x + b.max.x) / 2 * s + this.fit.dx * 120,
-          -(b.min.y + b.max.y) / 2 * s + this.fit.dy * 120,
-          this.fit.dz * 260,
-        );
+        const cx = (b.min.x + b.max.x) / 2;
+        // feet just above the bottom edge, head x over the tracked head x
+        const floorY = -this.height * 0.485;
+        const swayX = p.hasFace ? (p.x - this.width / 2) * 0.55 : 0;
+        const limitX = Math.max(0, this.width / 2 - (bw * s) / 2 - 12);
+        const px = THREE.MathUtils.clamp(swayX - cx * s, -limitX, limitX) + this.fit.dx * 120;
+        g.position.set(px, -b.min.y * s + floorY + this.fit.dy * 120, this.fit.dz * 260);
         anatomy.headNode.rotation.set(pitch * 0.30, yaw * 0.32, 0, 'YXZ');
         anatomy.bodyNode.rotation.set(0, yaw * 0.12, 0, 'YXZ');
       } else {
