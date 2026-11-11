@@ -40,7 +40,7 @@ Kamera olmadan da çalışır: "Kamera olmadan dene" modeli sürükleyip döndü
 
 - **Gerçek anatomi:** 51 adlandırılmış yapı, 102 ayrı mesh, **251.894 üçgen / 126.402 tepe noktası** — prosedürel bir kafa değil, taranmış yüzeyler.
 - **Altı katman:** kafatası (25 parça), beyin (3), yüz kasları (27), gözler (2), boyun (7), **iskelet (38 parça: omurga, 24 kaburga, leğen, kol ve bacak kemikleri, el-ayak)**. Tek tek açılıp kapatılabilir, hazır ön ayarlar var.
-- **İki gövde görünümü:** **Ayna** (iskelet yüzünüze ölçeklenir, vücut aşağı doğru devam eder) ve **Tam boy** (bütün iskelet sahaya sığar, ayaklar görünür).
+- **İki gövde görünümü:** varsayılan **Tam boy** (bütün iskelet ayak parmaklarına kadar sahaya sığar) ve **Ayna** (iskelet yüzünüze 1:1 ölçeklenir, gövde ekranın altına doğru devam eder). Panelden ya da `B` ile geçilir.
 - **Üç görünüm:** X-ray (ekran karışımı, kenar parlaması), katı (ışıklı), çizgi (wireframe).
 - **Açılan bölge:** tüm kafa · sol yarı · sağ yarı · üst kısım · alt yüz · **X-ray merceği** (imlecin/parmağın altındaki daire). Kesim düzlemi model uzayında çalışır, yani kafayla birlikte döner.
 - **Otomatik hizalama:** göz aralığı (IOD) ölçülür; boyut, sağ-sol, yukarı-aşağı, öne-arkaya ince ayarı elle de yapılabilir.

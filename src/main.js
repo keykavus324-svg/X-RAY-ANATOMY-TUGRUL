@@ -15,7 +15,7 @@ const STORE_KEY = 'xrm.prefs.v2';
 /* ------------------------------------------------------------------ state */
 const DEFAULTS = {
   layers: { skull: true, brain: true, muscles: false, eyes: true, neck: false, skeleton: true },
-  view: 'mirror',
+  view: 'full',
   labels: true,
   look: 'xray',
   brightness: 1.15,
