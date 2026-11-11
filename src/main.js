@@ -10,7 +10,11 @@ import { initControls } from './ui/controls.js';
 import { initExplorer } from './ui/explorer.js';
 
 const $ = (id) => document.getElementById(id);
-const STORE_KEY = 'xrm.prefs.v2';
+// v3: earlier builds could pin a head-only model, and later ones a free-standing full
+// skeleton. Preferences stored by those builds are dropped so everyone starts on the
+// mode that puts the anatomy on their own body.
+const STORE_KEY = 'xrm.prefs.v3';
+const LEGACY_KEYS = ['xrm.prefs.v1', 'xrm.prefs.v2'];
 
 /* ------------------------------------------------------------------ state */
 const DEFAULTS = {
@@ -30,6 +34,7 @@ const DEFAULTS = {
 
 function loadState() {
   try {
+    for (const key of LEGACY_KEYS) localStorage.removeItem(key);
     const raw = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
     return {
       ...DEFAULTS,
@@ -58,6 +63,7 @@ let rafId = 0;
 let lastT = 0;
 let detecting = false;
 let faceSeen = false;
+let bodyHintShown = false;
 let lostFrames = 0;
 let saveTimer = 0;
 
@@ -292,6 +298,12 @@ function startLoop() {
             if (!stage.pose.hasFace || !faceSeen) {
               faceSeen = true;
               setStatus('status.live', 'live');
+              // one nudge per page load: the anatomy is on your body now, the free
+              // standing figure is one key away
+              if (!bodyHintShown) {
+                bodyHintShown = true;
+                toast(t('toast.bodyHint'));
+              }
             }
             lostFrames = 0;
             stage.setPose(pose);

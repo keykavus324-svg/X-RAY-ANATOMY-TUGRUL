@@ -45,7 +45,7 @@ export const DICT = {
     'panel.layers': 'Katmanlar', 'panel.look': 'Görünüm', 'panel.mr': 'Karma gerçeklik',
     'panel.view': 'Gövde görünümü',
     'view.mirror': 'Ayna', 'view.full': 'Tam boy',
-    'view.hint': 'Ayna: iskelet göz aralığınıza 1:1 oturur — kafatası, omurga ve kaburgalar kendi bedeninizin üzerine gelir. Tüm vücudu görmek için ya kameradan biraz uzaklaşın ya da “Tam boy”a geçin (B).',
+    'view.hint': 'Ayna: iskelet göz aralığınıza 1:1 oturur — kafatası yüzünüzde, omurga ve kaburgalar gövdenizde; kameradan uzaklaştıkça daha çoğu görünür. Tam boy: iskelet ayrı bir figür olarak ayakta durur (B).',
     'panel.fit': 'Yüzüme otur', 'panel.note': 'Anatomi tek bir yetişkinin gerçek 3B verisinden gelir ve yüzünüze ölçeklenir. Sizin tomografiniz değildir, tıbbi bir araç değildir.',
     'preset.all': 'Hepsi', 'preset.skeleton': 'İskelet', 'preset.skull': 'Kafatası', 'preset.brain': 'Beyin', 'preset.muscles': 'Kaslar',
     'layer.skull': 'Kafatası', 'layer.brain': 'Beyin', 'layer.muscles': 'Yüz kasları', 'layer.eyes': 'Gözler',
@@ -62,6 +62,7 @@ export const DICT = {
     'reveal.top': 'Üst kısım', 'reveal.bottom': 'Alt yüz', 'reveal.lens': 'X-ray merceği',
     'fit.hint': 'Otomatik hizalama göz aralığınızı ölçer. İnce ayar için kaydırıcıları kullanın.',
 
+    'toast.bodyHint': 'Anatomi artık bedeninizin üzerinde. Tüm iskeleti ayakta görmek için B (Tam boy).',
     'toast.snapshot': 'Kare indirildi.',
     'toast.noSnap': 'Kare alınamadı.',
     'toast.camOn': 'Kamera açık.',
@@ -168,7 +169,7 @@ export const DICT = {
     'panel.layers': 'Layers', 'panel.look': 'Look', 'panel.mr': 'Mixed reality',
     'panel.view': 'Body view',
     'view.mirror': 'Mirror', 'view.full': 'Full body',
-    'view.hint': 'Mirror: the skeleton sits 1:1 on your eye distance, so skull, spine and ribs land on your own body. To see the whole figure, step back from the camera or switch to Full body (B).',
+    'view.hint': 'Mirror: the skeleton sits 1:1 on your eye distance — skull on your face, spine and ribs on your torso; step back and more of it shows. Full body: the skeleton stands as a separate figure (B).',
     'panel.fit': 'Fit to my head', 'panel.note': 'The anatomy is a real 3D dataset of one adult, scaled to your face. It is not a scan of you and not a medical tool.',
     'preset.all': 'Everything', 'preset.skeleton': 'Skeleton', 'preset.skull': 'Skull', 'preset.brain': 'Brain', 'preset.muscles': 'Muscles',
     'layer.skull': 'Skull', 'layer.brain': 'Brain', 'layer.muscles': 'Face muscles', 'layer.eyes': 'Eyes',
@@ -185,6 +186,7 @@ export const DICT = {
     'reveal.top': 'Top of the head', 'reveal.bottom': 'Lower face', 'reveal.lens': 'X-ray lens',
     'fit.hint': 'Auto align measures the distance between your eyes. Use the sliders for fine tuning.',
 
+    'toast.bodyHint': 'The anatomy is on your body now. Press B to see the whole skeleton standing.',
     'toast.snapshot': 'Snapshot downloaded.',
     'toast.noSnap': 'Could not capture the frame.',
     'toast.camOn': 'Camera on.',
