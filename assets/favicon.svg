@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="X-Ray Mirror">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="72%">
+      <stop offset="0" stop-color="#16324a"/>
+      <stop offset="1" stop-color="#070a10"/>
+    </radialGradient>
+    <linearGradient id="bone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eaf5ff"/>
+      <stop offset="1" stop-color="#8fc9ee"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <g stroke="#7fd1ff" fill="none" stroke-opacity=".5">
+    <circle cx="32" cy="32" r="25" stroke-width="1.1"/>
+    <circle cx="32" cy="32" r="17" stroke-opacity=".28" stroke-width="1"/>
+  </g>
+  <g stroke="#7fd1ff" stroke-width="2" stroke-linecap="round" stroke-opacity=".85">
+    <path d="M32 4v7M32 53v7M4 32h7M53 32h7"/>
+  </g>
+  <path d="M23.6 24.4c0-3.9 3.9-6.6 8.4-6.6s8.4 2.7 8.4 6.6v6.1c0 3.4-2.5 6-3.8 8.9-1.1 2.5-1.6 5.3-1.9 7.4-.2 1.4-2.5 1.4-2.7 0-.4-2.5-1-5.2-2.3-7.8-1.5-2.9-6.1-4.6-6.1-8.5z"
+        fill="url(#bone)" fill-opacity=".9" stroke="#cfe6ff" stroke-width="1" stroke-opacity=".55"/>
+  <ellipse cx="27.8" cy="25.6" rx="2.8" ry="2.4" fill="#0b1119" fill-opacity=".82"/>
+  <ellipse cx="36.2" cy="25.6" rx="2.8" ry="2.4" fill="#0b1119" fill-opacity=".82"/>
+  <path d="M30.4 32.6h3.2l-1.6 2.6z" fill="#0b1119" fill-opacity=".6"/>
+  <path d="M27.4 39.4h9.2M28.3 43.2h3.2M32.5 43.2h3.2" stroke="#0b1119" stroke-opacity=".45" stroke-width="1.3" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,19 @@
+{
+  "name": "X-Ray Mirror — Canlı anatomi aynası",
+  "short_name": "X-Ray Mirror",
+  "description": "Kendi kafanızın içindeki kafatasını, beyni ve yüz kaslarını kameranızda canlı olarak görün. Tüm işlem cihazınızda kalır.",
+  "lang": "tr",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#070a10",
+  "theme_color": "#070a10",
+  "categories": ["education", "medical", "health"],
+  "icons": [
+    { "src": "./assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./assets/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

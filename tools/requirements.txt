@@ -1,0 +1,7 @@
+# Geometry pipeline (Python 3.10+)
+numpy>=1.24
+trimesh>=4.0
+fast-simplification>=0.1.7
+scipy>=1.10
+networkx>=3.0
+pillow>=10.0
