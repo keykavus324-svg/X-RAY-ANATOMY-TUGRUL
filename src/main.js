@@ -587,6 +587,42 @@ window.addEventListener('error', (e) => {
 });
 document.addEventListener('visibilitychange', () => { lastT = performance.now(); });
 
+/* ------------------------------------------------------------------ debug */
+/** `?debug=1` lists elements that cover more than half of the viewport. Handy when a
+ *  browser paints something at the wrong size; it is inert in normal use. */
+function inspectLayout() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const rows = [];
+  for (const node of document.querySelectorAll('body *')) {
+    const r = node.getBoundingClientRect();
+    if (r.width * r.height < vw * vh * 0.5) continue;
+    const id = node.id ? `#${node.id}` : '';
+    const cls = typeof node.className === 'string' && node.className.trim()
+      ? `.${node.className.trim().split(/\s+/).join('.')}` : '';
+    rows.push(`${node.tagName.toLowerCase()}${id}${cls} ${Math.round(r.width)}x${Math.round(r.height)}`);
+  }
+  const box = document.createElement('pre');
+  box.style.cssText = 'position:fixed;left:10px;bottom:10px;z-index:9999;max-width:70vw;max-height:40vh;'
+    + 'overflow:auto;background:#000d;color:#9fe0ff;font:11px/1.45 ui-monospace,monospace;'
+    + 'padding:10px 12px;border-radius:8px;white-space:pre-wrap;margin:0';
+  const pseudo = ['.eyebrow .dot', '.ck input', '.nav a'];
+  const extra = pseudo.map((sel) => {
+    const node = document.querySelector(sel);
+    if (!node) return '';
+    const after = getComputedStyle(node, '::after');
+    const before = getComputedStyle(node, '::before');
+    const desc = (name, st) => (st.content && st.content !== 'none'
+      ? `${name}{content:${st.content} pos:${st.position} inset:${st.top}/${st.right}/${st.bottom}/${st.left} bg:${st.backgroundColor}}`
+      : '');
+    return `\n${sel}: ${desc('::before', before)} ${desc('::after', after)}`.trimEnd();
+  }).join('');
+  box.textContent = `viewport ${vw}x${vh}\n${rows.slice(0, 14).join('\n') || 'no oversized elements'}${extra}`;
+  document.body.appendChild(box);
+}
+
+if (new URLSearchParams(window.location.search).has('debug')) inspectLayout();
+
 bindKeyboard();
 boot().catch((err) => {
   console.error(err);
