@@ -54,7 +54,7 @@ export function initControls({ state, onChange, actions, t }) {
         : preset === 'brain' ? only('brain')
         : preset === 'muscles' ? only('muscles')
         : preset === 'skeleton' ? only('skull', 'neck', 'skeleton')
-        : only('skull', 'brain', 'muscles', 'eyes', 'skeleton');
+        : only('skull', 'brain', 'muscles', 'eyes', 'skeleton', 'neck');
       b.classList.toggle('on', !!match);
     });
     viewButtons.forEach((b) => b.classList.toggle('on', b.dataset.view === state.view));
@@ -76,7 +76,7 @@ export function initControls({ state, onChange, actions, t }) {
       const p = b.dataset.preset;
       const base = { skull: false, brain: false, muscles: false, eyes: false, neck: false, skeleton: false };
       state.layers = p === 'all'
-        ? { ...base, skull: true, brain: true, muscles: true, eyes: true, skeleton: true }
+        ? { ...base, skull: true, brain: true, muscles: true, eyes: true, skeleton: true, neck: true }
         : p === 'skull' ? { ...base, skull: true, eyes: true }
         : p === 'brain' ? { ...base, brain: true }
         : p === 'muscles' ? { ...base, muscles: true }
